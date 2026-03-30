@@ -17,7 +17,8 @@ import json
 import time
 import re
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any, Dict, List
+from googleapiclient.discovery import Resource
 
 # Google API clients
 from google.oauth2 import service_account
@@ -39,10 +40,10 @@ GMAIL_CLIENT_SECRETS = os.environ.get(
 )
 
 # Compute Engine service
-compute: Optional[Any] = None
-sheets: Optional[Any] = None
-drive: Optional[Any] = None
-gmail: Optional[Any] = None
+compute: Optional[Resource] = None
+sheets: Optional[Resource] = None
+drive: Optional[Resource] = None
+gmail: Optional[Resource] = None
 
 
 def init_compute():
