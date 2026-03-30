@@ -1,0 +1,9 @@
+{
+  "region": "europe-west2",
+  "zone": "europe-west2-b",
+  "machine_type": "e2-medium",
+  "disk_type": "pd-balanced",
+  "disk_size_gb": 20,
+  "os_image_project": "debian-cloud",
+  "os_image_family": "debian-12-bookworm"
+}

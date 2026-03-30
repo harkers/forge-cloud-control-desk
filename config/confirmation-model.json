@@ -1,0 +1,27 @@
+{
+  "low_risk": {
+    "description": "Read-only actions, non-disruptive",
+    "confirmation_level": "none",
+    "actions": [
+      "inspect",
+      "list_instances"
+    ]
+  },
+  "medium_risk": {
+    "description": "State changes with potential brief interruption",
+    "confirmation_level": "onscreen",
+    "actions": [
+      "start",
+      "stop",
+      "restart"
+    ]
+  },
+  "high_risk": {
+    "description": "Destructive or costly operations",
+    "confirmation_level": "onscreen+gmail_receipt",
+    "actions": [
+      "create",
+      "resize"
+    ]
+  }
+}

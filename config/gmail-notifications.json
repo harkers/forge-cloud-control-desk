@@ -1,0 +1,36 @@
+{
+  "low_risk": {
+    "description": "Read-only action completed",
+    "send_email": false,
+    "send_digest": true
+  },
+  "medium_risk": {
+    "description": "State change completed",
+    "send_email": true,
+    "send_digest": true,
+    "email_template": "success_failure_notification"
+  },
+  "high_risk": {
+    "description": "Destructive action with confirmation",
+    "send_email": true,
+    "send_digest": true,
+    "email_template": "success_failure_notification",
+    "pre_action_confirmation_email": true
+  },
+  "daily_digest": {
+    "description": "Summary of all VM actions",
+    "send_email": true,
+    "recipients": [
+      "self"
+    ],
+    "time": "20:00"
+  },
+  "weekly_governance": {
+    "description": "Weekly governance summary",
+    "send_email": true,
+    "recipients": [
+      "stakeholders"
+    ],
+    "time": "Monday 09:00"
+  }
+}

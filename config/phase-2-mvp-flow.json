@@ -1,0 +1,19 @@
+{
+  "workflow": "start instance",
+  "steps": [
+    "User selects VM \u2192 clicks 'Start'",
+    "System shows confirmation (instance, zone, reason field)",
+    "User confirms \u2192 API call sent to Compute Engine",
+    "Operation resource returned \u2192 polling loop started",
+    "Poll every 5s until DONE or FAILED",
+    "On success: Update Sheets, Write Drive evidence, Send Gmail",
+    "On failure: Update Sheets, Write Drive evidence, Send Gmail failure"
+  ],
+  "success_criteria": [
+    "One VM starts from the tool",
+    "Operation polled to completion",
+    "Sheets register updated",
+    "Evidence pack written to Drive",
+    "Gmail notification sent"
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "tab_name": "VM Register",
+  "columns": [
+    {
+      "name": "instance_name",
+      "type": "text",
+      "required": true,
+      "description": "VM instance name"
+    },
+    {
+      "name": "project",
+      "type": "text",
+      "required": true,
+      "description": "GCP project ID"
+    },
+    {
+      "name": "zone",
+      "type": "text",
+      "required": true,
+      "description": "Compute zone"
+    },
+    {
+      "name": "machine_type",
+      "type": "text",
+      "required": true,
+      "description": "e.g., e2-medium"
+    },
+    {
+      "name": "owner",
+      "type": "text",
+      "required": false,
+      "description": "Operator/owner"
+    },
+    {
+      "name": "purpose",
+      "type": "text",
+      "required": false,
+      "description": "Business purpose"
+    },
+    {
+      "name": "environment",
+      "type": "text",
+      "required": true,
+      "description": "dev/prod/staging"
+    },
+    {
+      "name": "status",
+      "type": "text",
+      "required": false,
+      "description": "running/stopped/failed/pending"
+    },
+    {
+      "name": "last_action",
+      "type": "text",
+      "required": false,
+      "description": "create/start/stop/restart"
+    },
+    {
+      "name": "last_action_result",
+      "type": "text",
+      "required": false,
+      "description": "success/pending/failed"
+    },
+    {
+      "name": "change_reference",
+      "type": "text",
+      "required": false,
+      "description": "Operation ID or timestamp"
+    },
+    {
+      "name": "evidence_link",
+      "type": "text",
+      "required": false,
+      "description": "Drive evidence folder URL"
+    },
+    {
+      "name": "notes",
+      "type": "text",
+      "required": false,
+      "description": "Free-text notes"
+    }
+  ]
+}

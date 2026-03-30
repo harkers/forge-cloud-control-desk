@@ -1,0 +1,49 @@
+{
+  "api_enablement": [
+    {
+      "api": "compute.googleapis.com",
+      "enabled": false
+    },
+    {
+      "api": "gmail.googleapis.com",
+      "enabled": false
+    },
+    {
+      "api": "drive.googleapis.com",
+      "enabled": false
+    },
+    {
+      "api": "sheets.googleapis.com",
+      "enabled": false
+    },
+    {
+      "api": "servicehealth.googleapis.com",
+      "enabled": false
+    }
+  ],
+  "auth_setup": {
+    "service_account_name": "forge-ccd-sa",
+    "scopes": [
+      "https://www.googleapis.com/auth/compute",
+      "https://www.googleapis.com/auth/gmail.modify",
+      "https://www.googleapis.com/auth/drive.file",
+      "https://www.googleapis.com/auth/spreadsheets",
+      "https://www.googleapis.com/auth/cloud-platform.read-only"
+    ]
+  },
+  "register_setup": {
+    "spreadsheet_name": "VM Register",
+    "tab_names": [
+      "VM Register",
+      "Change Log",
+      "Evidence Index"
+    ]
+  },
+  "evidence_setup": {
+    "folder_name": "VM Evidence",
+    "subfolders": [
+      "2026-03",
+      "2026-04"
+    ]
+  }
+}

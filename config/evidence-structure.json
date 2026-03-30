@@ -1,0 +1,18 @@
+{
+  "base_folder": "vm-evidence",
+  "naming_convention": "YYYY-MM",
+  "file_naming_pattern": "{instance_name}/{YYYYMMDD-HHMMSS}-{action}.md",
+  "required_fields": [
+    "timestamp",
+    "requested_action",
+    "target_vm.instance_name",
+    "target_vm.project",
+    "target_vm.zone",
+    "parameters.reason",
+    "api_response_summary",
+    "final_operation_result",
+    "register_row_link",
+    "operator_identity",
+    "notes"
+  ]
+}

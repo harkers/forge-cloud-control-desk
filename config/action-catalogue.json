@@ -1,0 +1,14 @@
+{
+  "read": {
+    "name": "list_instances",
+    "risk_level": "low",
+    "needs_confirmation": false,
+    "needs_drive_evidence": false
+  },
+  "write": {
+    "name": "resize",
+    "risk_level": "high",
+    "needs_confirmation": "onscreen+gmail",
+    "needs_drive_evidence": true
+  }
+}
