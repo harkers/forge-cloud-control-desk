@@ -1,0 +1,4 @@
+# Requirements for Forge Compute Control Desk
+google-api-python-client>=2.100.0
+google-auth>=2.25.0
+python-dotenv>=1.0.0
