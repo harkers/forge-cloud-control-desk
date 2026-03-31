@@ -90,6 +90,46 @@ def get_instance(instance_name: str) -> Dict[str, Any]:
     return c.instances().get(project=PROJECT_ID, zone=ZONE, instance=instance_name).execute()
 
 
+def create_instance(
+    instance_name: str,
+    machine_type: str = "e2-medium",
+    disk_size_gb: int = 20,
+) -> Dict[str, Any]:
+    """Create a new VM instance."""
+    c = get_compute()
+    body = {
+        "name": instance_name,
+        "machineType": f"projects/{PROJECT_ID}/zones/{ZONE}/machineTypes/{machine_type}",
+        "disks": [
+            {
+                "autoDelete": True,
+                "boot": True,
+                "deviceName": instance_name,
+                "initializeParams": {
+                    "diskSizeGb": str(disk_size_gb),
+                    "diskType": f"projects/{PROJECT_ID}/zones/{ZONE}/diskTypes/pd-balanced",
+                    "sourceImage": "projects/debian-cloud/global/images/family/debian-12",
+                },
+                "type": "PERSISTENT",
+            }
+        ],
+        "networkInterfaces": [
+            {
+                "network": f"projects/{PROJECT_ID}/global/networks/default",
+                "accessConfigs": [{"name": "External NAT", "type": "ONE_TO_ONE_NAT"}],
+            }
+        ],
+        "tags": {"items": ["forge-managed"]},
+    }
+    return c.instances().insert(project=PROJECT_ID, zone=ZONE, body=body).execute()
+
+
+def delete_instance(instance_name: str) -> Dict[str, Any]:
+    """Delete a VM instance."""
+    c = get_compute()
+    return c.instances().delete(project=PROJECT_ID, zone=ZONE, instance=instance_name).execute()
+
+
 # Define tools
 TOOLS = [
     Tool(
@@ -141,6 +181,30 @@ TOOLS = [
             "type": "object",
             "properties": {
                 "instance_name": {"type": "string", "description": "Name of the VM instance"},
+            },
+            "required": ["instance_name"],
+        },
+    ),
+    Tool(
+        name="create_vm",
+        description="Create a new VM instance with baseline config (high-risk, creates chargeable resource)",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "instance_name": {"type": "string", "description": "Name of the VM instance to create"},
+                "machine_type": {"type": "string", "description": "Machine type (default: e2-medium)", "default": "e2-medium"},
+                "disk_size_gb": {"type": "integer", "description": "Boot disk size in GB (default: 20)", "default": 20},
+            },
+            "required": ["instance_name"],
+        },
+    ),
+    Tool(
+        name="delete_vm",
+        description="Permanently delete a VM instance (high-risk, irreversible)",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "instance_name": {"type": "string", "description": "Name of the VM instance to delete"},
             },
             "required": ["instance_name"],
         },
@@ -248,6 +312,32 @@ async def handle_call_tool(request: CallToolRequest) -> Dict[str, Any]:
         instance = get_instance(instance_name)
         return {
             "content": [TextContent(type="text", text=json.dumps(instance, indent=2, default=str))],
+        }
+
+    elif tool_name == "create_vm":
+        instance_name = arguments.get("instance_name")
+        if not instance_name:
+            return {
+                "content": [TextContent(type="text", text="Error: instance_name is required")],
+                "isError": True,
+            }
+        machine_type = arguments.get("machine_type", "e2-medium")
+        disk_size_gb = arguments.get("disk_size_gb", 20)
+        operation = create_instance(instance_name, machine_type, disk_size_gb)
+        return {
+            "content": [TextContent(type="text", text=json.dumps(operation, indent=2))],
+        }
+
+    elif tool_name == "delete_vm":
+        instance_name = arguments.get("instance_name")
+        if not instance_name:
+            return {
+                "content": [TextContent(type="text", text="Error: instance_name is required")],
+                "isError": True,
+            }
+        operation = delete_instance(instance_name)
+        return {
+            "content": [TextContent(type="text", text=json.dumps(operation, indent=2))],
         }
 
     elif tool_name == "list_evidence":

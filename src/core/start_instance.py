@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 """
-Forge Compute Control Desk — Phase 2: Start Instance End-to-End Workflow
+Forge Compute Control Desk — VM Lifecycle Workflows
 
-This module implements the start instance workflow:
-1. Request start from user
-2. Confirm action
-3. Call Compute Engine API to start VM
-4. Poll operation status
-5. Update Sheets register
-6. Write evidence locally
-7. Send local notification
+This module implements the VM lifecycle workflows:
+- create: Provision a new VM from baseline config
+- delete: Permanently remove a VM
+- start / stop / restart: Control VM power state
+- inspect / list: Read-only observation
+- report: Weekly governance summary
+
+Each mutating workflow follows a 5-step pattern:
+1. Call Compute Engine API
+2. Poll operation to completion
+3. Update Sheets register
+4. Write local evidence
+5. Send local notification
 
 Note: Gmail notifications skipped due to OAuth delegation requirements for service accounts.
 Local notification files are written to the evidence folder instead.
@@ -128,6 +133,64 @@ def list_instances() -> list:
     )
     response = request.execute()
     return response.get("items", [])
+
+
+def create_instance(
+    instance_name: str,
+    machine_type: str = "e2-medium",
+    disk_size_gb: int = 20,
+    disk_type: str = "pd-balanced",
+    image_family: str = "debian-12",
+    image_project: str = "debian-cloud",
+) -> dict:
+    """Create a new VM instance and return the insert operation."""
+    if compute is None:
+        init_compute()
+
+    body = {
+        "name": instance_name,
+        "machineType": f"projects/{PROJECT_ID}/zones/{ZONE}/machineTypes/{machine_type}",
+        "disks": [
+            {
+                "autoDelete": True,
+                "boot": True,
+                "deviceName": instance_name,
+                "initializeParams": {
+                    "diskSizeGb": str(disk_size_gb),
+                    "diskType": f"projects/{PROJECT_ID}/zones/{ZONE}/diskTypes/{disk_type}",
+                    "sourceImage": f"projects/{image_project}/global/images/family/{image_family}",
+                },
+                "type": "PERSISTENT",
+            }
+        ],
+        "networkInterfaces": [
+            {
+                "network": f"projects/{PROJECT_ID}/global/networks/default",
+                "accessConfigs": [{"name": "External NAT", "type": "ONE_TO_ONE_NAT"}],
+            }
+        ],
+        "tags": {"items": ["forge-managed"]},
+    }
+
+    request = compute.instances().insert(
+        project=PROJECT_ID,
+        zone=ZONE,
+        body=body,
+    )
+    return request.execute()
+
+
+def delete_instance(instance_name: str) -> dict:
+    """Delete a VM instance and return the delete operation."""
+    if compute is None:
+        init_compute()
+
+    request = compute.instances().delete(
+        project=PROJECT_ID,
+        zone=ZONE,
+        instance=instance_name,
+    )
+    return request.execute()
 
 
 def poll_operation(
@@ -523,6 +586,134 @@ def restart_instance_workflow(instance_name: str, reason: str = "User requested 
     return {"success": True, "operation_id": operation_id}
 
 
+def create_instance_workflow(
+    instance_name: str,
+    reason: str = "User requested create",
+    machine_type: str = "e2-medium",
+    disk_size_gb: int = 20,
+) -> dict:
+    """Execute the complete create instance workflow."""
+    print(f"Creating instance: {instance_name}")
+
+    params = {
+        "reason": reason,
+        "machine_type": machine_type,
+        "disk_size_gb": str(disk_size_gb),
+    }
+
+    # Step 1: Create instance
+    print("Step 1: Initiating create...")
+    operation = create_instance(
+        instance_name,
+        machine_type=machine_type,
+        disk_size_gb=disk_size_gb,
+    )
+    operation_id = operation.get("name")
+    print(f"Operation ID: {operation_id}")
+
+    # Step 2: Poll for completion
+    print("Step 2: Polling operation status...")
+    result = poll_operation(operation_id)
+    if not result.get("success"):
+        print(f"Operation failed: {result.get('error')}")
+        send_local_notification(
+            f"[FAILED] {instance_name} create",
+            f"Failed to create {instance_name}\nError: {result.get('error')}",
+        )
+        return {"success": False, "error": result.get("error")}
+
+    # Step 3: Update Sheets
+    print("Step 3: Updating Sheets register...")
+    try:
+        update_sheets_register(instance_name, "create", True, operation_id)
+    except Exception as e:
+        # Sheets update is non-fatal for create; the VM exists regardless
+        print(f"Warning: Sheets update failed: {e}")
+
+    # Step 4: Write evidence locally
+    print("Step 4: Writing evidence locally...")
+    evidence_path = write_drive_evidence(
+        instance_name,
+        "create",
+        True,
+        operation_id,
+        params,
+    )
+    print(f"Evidence path: {evidence_path}")
+
+    # Step 5: Send notification
+    print("Step 5: Sending local notification...")
+    send_local_notification(
+        f"[SUCCESS] {instance_name} created",
+        f"Instance {instance_name} was successfully created.\n\n"
+        f"Project: {PROJECT_ID}\n"
+        f"Zone: {ZONE}\n"
+        f"Machine Type: {machine_type}\n"
+        f"Disk: {disk_size_gb}GB\n"
+        f"Operation: {operation_id}\n"
+        f"Evidence: {evidence_path}\n"
+        f"Reason: {reason}",
+    )
+
+    print(f"✅ {instance_name} created successfully!")
+    return {"success": True, "operation_id": operation_id}
+
+
+def delete_instance_workflow(instance_name: str, reason: str = "User requested delete") -> dict:
+    """Execute the complete delete instance workflow."""
+    print(f"Deleting instance: {instance_name}")
+
+    # Step 1: Delete instance
+    print("Step 1: Initiating delete...")
+    operation = delete_instance(instance_name)
+    operation_id = operation.get("name")
+    print(f"Operation ID: {operation_id}")
+
+    # Step 2: Poll for completion
+    print("Step 2: Polling operation status...")
+    result = poll_operation(operation_id)
+    if not result.get("success"):
+        print(f"Operation failed: {result.get('error')}")
+        send_local_notification(
+            f"[FAILED] {instance_name} delete",
+            f"Failed to delete {instance_name}\nError: {result.get('error')}",
+        )
+        return {"success": False, "error": result.get("error")}
+
+    # Step 3: Update Sheets
+    print("Step 3: Updating Sheets register...")
+    try:
+        update_sheets_register(instance_name, "delete", True, operation_id)
+    except Exception as e:
+        print(f"Warning: Sheets update failed: {e}")
+
+    # Step 4: Write evidence locally
+    print("Step 4: Writing evidence locally...")
+    evidence_path = write_drive_evidence(
+        instance_name,
+        "delete",
+        True,
+        operation_id,
+        {"reason": reason},
+    )
+    print(f"Evidence path: {evidence_path}")
+
+    # Step 5: Send notification
+    print("Step 5: Sending local notification...")
+    send_local_notification(
+        f"[SUCCESS] {instance_name} deleted",
+        f"Instance {instance_name} was successfully deleted.\n\n"
+        f"Project: {PROJECT_ID}\n"
+        f"Zone: {ZONE}\n"
+        f"Operation: {operation_id}\n"
+        f"Evidence: {evidence_path}\n"
+        f"Reason: {reason}",
+    )
+
+    print(f"✅ {instance_name} deleted successfully!")
+    return {"success": True, "operation_id": operation_id}
+
+
 def inspect_instance_workflow(instance_name: str) -> dict:
     """Execute the inspect instance workflow (read-only, no Sheets update)."""
     print(f"Inspecting instance: {instance_name}")
@@ -745,15 +936,19 @@ if __name__ == "__main__":
 
     if len(sys.argv) < 2:
         print("Usage: python -m src.core.start_instance <instance_name> <action>")
-        print("Actions: start, stop, restart, inspect, list")
+        print("Actions: create, delete, start, stop, restart, inspect, list, report")
         print("Example: python -m src.core.start_instance forge-test-vm start")
         sys.exit(1)
 
     instance_name = sys.argv[1]
     action = sys.argv[2] if len(sys.argv) > 2 else "start"
-    reason = sys.argv[3] if len(sys.argv) > 3 else "Manual start via forge-ccd"
+    reason = sys.argv[3] if len(sys.argv) > 3 else "Manual action via forge-ccd"
 
-    if action == "start":
+    if action == "create":
+        create_instance_workflow(instance_name, reason)
+    elif action == "delete":
+        delete_instance_workflow(instance_name, reason)
+    elif action == "start":
         start_instance_workflow(instance_name, reason)
     elif action == "stop":
         stop_instance_workflow(instance_name, reason)
@@ -767,5 +962,5 @@ if __name__ == "__main__":
         generate_weekly_governance_report()
     else:
         print(f"Unknown action: {action}")
-        print("Actions: start, stop, restart, inspect, list, report")
+        print("Actions: create, delete, start, stop, restart, inspect, list, report")
         sys.exit(1)

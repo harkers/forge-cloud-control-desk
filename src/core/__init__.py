@@ -14,6 +14,10 @@ from src.config import (
 
 # Core functionality
 from .start_instance import (
+    create_instance,
+    create_instance_workflow,
+    delete_instance,
+    delete_instance_workflow,
     start_instance_workflow,
     start_instance,
     stop_instance,
@@ -39,6 +43,10 @@ __all__ = [
     "GMAIL_SENDER_EMAIL",
     "LOG_LEVEL",
     "validate",
+    "create_instance",
+    "create_instance_workflow",
+    "delete_instance",
+    "delete_instance_workflow",
     "start_instance_workflow",
     "start_instance",
     "stop_instance",

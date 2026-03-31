@@ -5,10 +5,22 @@
     "needs_confirmation": false,
     "needs_drive_evidence": false
   },
+  "create": {
+    "name": "create_instance",
+    "risk_level": "high",
+    "needs_confirmation": "onscreen+notification",
+    "needs_drive_evidence": true
+  },
+  "delete": {
+    "name": "delete_instance",
+    "risk_level": "high",
+    "needs_confirmation": "onscreen+notification",
+    "needs_drive_evidence": true
+  },
   "write": {
     "name": "resize",
     "risk_level": "high",
-    "needs_confirmation": "onscreen+gmail",
+    "needs_confirmation": "onscreen+notification",
     "needs_drive_evidence": true
   }
 }

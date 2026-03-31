@@ -71,9 +71,12 @@ Governance platform for Google Compute Engine VM lifecycle, with structured appr
 - Wire Drive evidence store on completion
 
 ### Phase 2 — Thin End-to-End Flow
-- Prove one safe VM action end to end
-- Confirm evidence creation and register updates
-- Validate local notification delivery
+- Prove one safe VM action end to end (start/stop/restart) ✅
+- Create instance workflow with full evidence trail ✅
+- Delete instance workflow for cost-safe cleanup ✅
+- Confirm evidence creation and register updates ✅
+- Validate local notification delivery ✅
+- Round-trip test path: create → inspect → delete ✅
 - Document team ops runbook
 
 ### Phase 3 — Operations Visibility

@@ -14,11 +14,11 @@ Compute Engine is API-driven but has per-project rate quotas and concurrent-oper
 
 ## MVP Scope (core product)
 
-1. **VM request & approval** — Gmail-based approval workflow
-2. **VM lifecycle actions** — create, start, stop, resize, inspect
+1. **VM request & approval** — local notification-based approval workflow (Gmail deferred to Phase N+1)
+2. **VM lifecycle actions** — create, delete, start, stop, restart, inspect, list
 3. **Live asset register** — Sheets-based inventory and change log
-4. **Evidence storage** — Drive-based implementation packs and runbooks
-5. **Notifications** — Gmail for status updates and summaries
+4. **Evidence storage** — local evidence packs (Drive integration future)
+5. **Notifications** — local-first notification files (see STRATEGIC-DECISIONS.md)
 
 ## Extension scope: Forge Email Server
 
