@@ -1,0 +1,23 @@
+# Environment
+.env
+*.env.local
+
+# Evidence & data (runtime-generated, not source)
+data/evidence/
+data/*.db
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyc
+
+# MCP server socket
+mcp.sock
+
+# OS
+.DS_Store
+Thumbs.db
+
+# GCP service account (never commit)
+*.json
+!config/*.example.json
