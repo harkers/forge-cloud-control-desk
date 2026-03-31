@@ -78,7 +78,7 @@ Governance platform for Google Compute Engine VM lifecycle, with structured appr
 - Validate local notification delivery ✅
 - Round-trip test path: create → inspect → delete ✅
 - Daily digest workflow (evidence-scanning governance summary) ✅
-- Document team ops runbook
+- Document team ops runbook ✅ (see docs/TEAM-OPS-RUNBOOK.md)
 
 ### Phase 3 — Operations Visibility
 - Service Health integration

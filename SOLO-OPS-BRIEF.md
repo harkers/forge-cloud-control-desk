@@ -161,12 +161,13 @@ See EMAIL-SERVER-EXTENSION.md.
 
 ## Acceptance Criteria (MVP Done)
 
-- [ ] Execute at least one Compute Engine action from the tool and track to completion
-- [ ] Result written to Sheets successfully
-- [ ] Evidence record stored in Drive successfully
-- [ ] Local notification written successfully
-- [ ] Action log distinguishes requested/in-progress/succeeded/failed states
-- [ ] Quota/concurrent-operation failures handled cleanly
+- [x] Execute at least one Compute Engine action from the tool and track to completion
+- [x] Result written to Sheets successfully
+- [x] Evidence record stored in Drive successfully
+- [x] Local notification written successfully
+- [x] Action log distinguishes requested/in-progress/succeeded/failed states
+- [x] Quota/concurrent-operation failures handled cleanly
+- [x] Team ops runbook documented
 
 ## Recommended MVP Backlog (Build Order)
 
