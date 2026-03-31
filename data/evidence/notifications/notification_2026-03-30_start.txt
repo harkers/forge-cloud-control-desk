@@ -1,0 +1,12 @@
+# [SUCCESS] forge-test-vm started
+
+Instance forge-test-vm was successfully started.
+
+Project: 301823798218
+Zone: europe-west2-b
+Operation: operation-1774858671131-64e397c9e8a2e-8476151f-576d39a2
+Evidence: /home/stu/.openclaw/workspace/projects/forge-cloud-control-desk/data/evidence/forge-test-vm_2026-03-30_start.md
+Reason: User requested start
+
+Timestamp: 2026-03-30T08:17:51.960141Z
+Local Evidence Folder: /home/stu/.openclaw/workspace/projects/forge-cloud-control-desk/data/evidence/notifications

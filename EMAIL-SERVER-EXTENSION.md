@@ -1,8 +1,10 @@
-# Forge Cloud Control Desk — Email Server Extension
+# Forge Cloud Control Desk - Email Server Extension
 
-**Base project:** `project-20260330044222184857`  
-**Extension record:** `project-20260331202030761850`  
+**Base project:** `project-20260330044222184857`
+**Extension record:** `project-20260331202030761850`
 **Last updated:** 2026-03-31
+**Phase:** Phase 4 (after Phase 3 proves governance model)
+**Decisions:** GCCD-STR-001 — Decisions 3, 4, 5, 6
 
 ---
 
@@ -131,45 +133,45 @@ It does not carry SMTP relay traffic.
 
 ---
 
-## 8. Open integration decision for Titan-hosted apps
+## 8. Titan Submission — Baseline Only
 
-The main unresolved decision is how Titan-hosted apps submit mail.
+**DECIDED (Decision 4): Option A — Local submission only.**
 
-Options:
-1. workload runs on relay VM and submits locally
-2. workload submits over private/VPN-restricted path to relay VM
-3. workload uses SendGrid directly
+Titan apps that need to send mail must either:
+- Run on the `forge-mail-server` relay VM and submit locally, or
+- Use SendGrid directly
 
-This is an implementation choice still to be locked per workload.
-It is not declared implemented in this document.
+**Options B and C are future products**, not part of this baseline. They require separate approval and new planning.
+
+This is not an open decision — it is closed for this baseline.
 
 ---
 
 ## 9. Phase plan inside GCCD
 
-### Phase A — Provision relay workload
+### Phase A - Provision relay workload
 - create `forge-mail-server`
 - write VM evidence
 - update GCCD register
 
-### Phase B — Apply relay baseline
+### Phase B - Apply relay baseline
 - install Postfix
 - apply relay-only config
 - test SendGrid connectivity on 587
 - keep fallback snippets for 465 / 2525
 
-### Phase C — Authenticate sending domain
+### Phase C - Authenticate sending domain
 - create scoped API key
 - publish SendGrid DNS records
 - validate authenticated domain
 - start DMARC at `p=none`
 
-### Phase D — Add telemetry
+### Phase D - Add telemetry
 - enable Signed Event Webhook
 - validate signature handling
 - link events/evidence back into GCCD
 
-### Phase E — Onboard workloads
+### Phase E - Onboard workloads
 - choose submission model
 - run end-to-end send tests
 - update evidence and notes
@@ -185,9 +187,18 @@ It is not declared implemented in this document.
 - [ ] at least one workload sends successfully
 - [ ] evidence exists for provision, config, and validation
 
----
+## 11. Retirement plan — required
 
-## 11. Summary
+**DECIDED (Decision 6): Retirement/shutdown path is mandatory.**
+
+Before Phase 4A begins, the following must be documented:
+- How to stop the relay workload gracefully
+- How to migrate or preserve SendGrid API keys and DNS records
+- How to remove the relay VM without breaking dependent systems
+- How to revoke SendGrid authenticated domain
+- How to update dependent apps to use SendGrid directly if needed
+
+Without a retirement plan, the extension is not accepted.
 
 This extension narrows the old mail-server concept into something GCCD can govern cleanly:
 **a small outbound relay workload with strong evidence discipline**, not a sprawling self-hosted mail suite.

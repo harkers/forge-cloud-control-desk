@@ -1,4 +1,10 @@
-# Requirements for Forge Compute Control Desk
-google-api-python-client>=2.100.0
-google-auth>=2.25.0
-python-dotenv>=1.0.0
+# MCP Server dependencies
+mcp>=1.0.0
+
+# Google API dependencies
+google-api-python-client>=2.0.0
+google-auth>=2.0.0
+google-auth-httplib2>=0.1.0
+
+# Flask for dashboard
+flask>=2.0.0

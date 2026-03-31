@@ -59,9 +59,9 @@ The MVP is successful when:
 - [x] Weekly governance reports generated automatically
 - [x] MCP server exposes VM management capabilities
 
-**Note:** Email notifications via Gmail API are not available for service accounts without OAuth delegation. Local notification files are written instead.
+**Note:** Gmail notifications via service account are not available without OAuth delegation. Local notification files are written as the baseline notification mechanism. Gmail integration is tracked as Phase N+1.
 
-## Success Criteria (email extension)
+## Success Criteria (email extension — Phase 4)
 
 The email extension is successful when:
 - [ ] a relay VM can be provisioned through GCCD
@@ -69,6 +69,8 @@ The email extension is successful when:
 - [ ] the Postfix relay profile is documented and reproducible
 - [ ] SendGrid-authenticated sending is validated
 - [ ] delivery telemetry can be tied back to GCCD evidence or linked records
+- [ ] team ops model is defined with named on-call owner
+- [ ] retirement/shutdown path is documented
 
 ## Next Steps
 
@@ -116,16 +118,20 @@ Current documented extension:
 ## Extension boundaries for Forge Email Server
 
 ### In scope
-- outbound relay VM
+- outbound relay VM (Phase 4, after Phase 3 governance proven)
 - Postfix relay-only profile
 - SendGrid SMTP auth and authenticated domain
 - delivery telemetry and evidence linkage
+- team ops model with named on-call owner
+- documented retirement/shutdown path
 
-### Out of scope
+### Out of scope (future products — require new approval)
 - inbound MX cutover
 - mailbox hosting
 - IMAP / POP / webmail baseline
 - Cloudflare Access in the SMTP path
+- Option B (private network submission)
+- Option C (direct SendGrid by Titan apps — unless apps run on relay VM)
 
 ## Recommended Architecture
 

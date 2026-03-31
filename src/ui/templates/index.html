@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forge Compute Control Desk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .card-icon { font-size: 24px; vertical-align: middle; margin-right: 10px; }
+        .status-badge { font-size: 12px; padding: 4px 8px; }
+        .status-running { background-color: #28a745; color: white; }
+        .status-terminated { background-color: #dc3545; color: white; }
+        .status-pending { background-color: #ffc107; color: black; }
+        .action-btn { width: 100%; margin-bottom: 5px; }
+        .instance-list { max-height: 600px; overflow-y: auto; }
+        .evidence-card { margin-bottom: 10px; }
+        .evidence-card a { text-decoration: none; color: #333; }
+        .evidence-card:hover { background-color: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+                    <div class="container-fluid">
+                        <a class="navbar-brand" href="#">
+                            <i class="bi bi-server"></i> Forge Compute Control Desk
+                        </a>
+                        <div class="navbar-text text-light">
+                            <i class="bi bi-cloud"></i> {{ project_id }} | <i class="bi bi-geo-alt"></i> {{ zone }}
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <i class="bi bi-list-ul"></i> VM Instances ({{ instances|length }})
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Status</th>
+                                        <th>Machine Type</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for instance in instances %}
+                                    <tr>
+                                        <td><strong>{{ instance.name }}</strong></td>
+                                        <td>
+                                            <span class="badge status-badge status-{{ instance.status|lower }}">
+                                                {{ instance.status }}
+                                            </span>
+                                        </td>
+                                        <td>{{ instance.machineType.split('/')[-1] }}</td>
+                                        <td>
+                                            {% if instance.status == 'RUNNING' %}
+                                            <button class="btn btn-sm btn-danger" onclick="stopInstance('{{ instance.name }}')">
+                                                <i class="bi bi-stop-circle"></i> Stop
+                                            </button>
+                                            <button class="btn btn-sm btn-warning" onclick="restartInstance('{{ instance.name }}')">
+                                                <i class="bi bi-arrow-repeat"></i> Restart
+                                            </button>
+                                            {% else %}
+                                            <button class="btn btn-sm btn-success" onclick="startInstance('{{ instance.name }}')">
+                                                <i class="bi bi-play-circle"></i> Start
+                                            </button>
+                                            {% endif %}
+                                            <button class="btn btn-sm btn-info" onclick="inspectInstance('{{ instance.name }}')">
+                                                <i class="bi bi-eye"></i> Inspect
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <i class="bi bi-folder"></i> Evidence Browser
+                    </div>
+                    <div class="card-body">
+                        <div id="evidence-list">
+                            <p class="text-muted">Loading evidence files...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-header bg-info text-white">
+                        <i class="bi bi-gear"></i> Settings
+                    </div>
+                    <div class="card-body">
+                        <dl class="row">
+                            <dt class="col-sm-4">Project ID</dt>
+                            <dd class="col-sm-8">{{ project_id }}</dd>
+                            
+                            <dt class="col-sm-4">Zone</dt>
+                            <dd class="col-sm-8">{{ zone }}</dd>
+                            
+                            <dt class="col-sm-4">Sheets ID</dt>
+                            <dd class="col-sm-8"><code>{{ sheets_spreadsheet_id[:20] }}...</code></dd>
+                            
+                            <dt class="col-sm-4">Evidence Folder</dt>
+                            <dd class="col-sm-8">{{ evidence_folder }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <i class="bi bi-terminal"></i> Recent Activity Log
+                    </div>
+                    <div class="card-body">
+                        <div id="activity-log" style="max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px;">
+                            <div class="text-muted">Loading activity log...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // API endpoints
+        const API_BASE = '/api';
+
+        // Load evidence on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadEvidence();
+            loadActivityLog();
+            setInterval(loadEvidence, 30000); // Refresh every 30 seconds
+        });
+
+        async function loadEvidence() {
+            try {
+                const response = await fetch(`${API_BASE}/evidence`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const evidenceList = document.getElementById('evidence-list');
+                    if (data.evidence_files.length === 0) {
+                        evidenceList.innerHTML = '<p class="text-muted">No evidence files found.</p>';
+                    } else {
+                        evidenceList.innerHTML = data.evidence_files.map(f => `
+                            <div class="evidence-card card">
+                                <div class="card-body">
+                                    <a href="#" onclick="viewEvidence('${f.path.replace(/\\/g, '\\\\')}')">
+                                        <strong>${f.name}</strong><br>
+                                        <small>${f.size} bytes | ${new Date(f.modified).toLocaleString()}</small>
+                                    </a>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                document.getElementById('evidence-list').innerHTML = 
+                    '<p class="text-danger">Error loading evidence: ' + error.message + '</p>';
+            }
+        }
+
+        async function loadActivityLog() {
+            try {
+                const response = await fetch(`${API_BASE}/instances`);
+                const data = await response.json();
+                
+                const log = document.getElementById('activity-log');
+                log.innerHTML = `
+                    <div>Activity log loaded at ${new Date().toLocaleTimeString()}</div>
+                    <div>Instances: ${data.count}</div>
+                    <div class="text-muted">Refresh every 30 seconds</div>
+                `;
+            } catch (error) {
+                document.getElementById('activity-log').innerHTML = 
+                    '<div class="text-danger">Error loading activity log: ' + error.message + '</div>';
+            }
+        }
+
+        async function startInstance(name) {
+            await performAction(name, 'start');
+            await loadEvidence();
+            await loadActivityLog();
+        }
+
+        async function stopInstance(name) {
+            await performAction(name, 'stop');
+            await loadEvidence();
+            await loadActivityLog();
+        }
+
+        async function restartInstance(name) {
+            await performAction(name, 'restart');
+            await loadEvidence();
+            await loadActivityLog();
+        }
+
+        async function inspectInstance(name) {
+            try {
+                const response = await fetch(`${API_BASE}/instances/${name}/inspect`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const instance = data.instance;
+                    alert(`Instance Details for ${name}:\n\n` +
+                          `Status: ${instance.status}\n` +
+                          `Machine Type: ${instance.machineType.split('/').pop()}\n` +
+                          `Zone: ${instance.zone.split('/').pop()}\n` +
+                          `Instance ID: ${instance.id}`);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error inspecting instance: ' + error.message);
+            }
+            await loadEvidence();
+            await loadActivityLog();
+        }
+
+        async function performAction(name, action) {
+            try {
+                const response = await fetch(`${API_BASE}/instances/${name}/${action}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`${action.charAt(0).toUpperCase() + action.slice(1)} operation initiated: ${data.message}`);
+                    window.location.reload();
+                } else {
+                    alert(`Error: ${data.error}`);
+                }
+            } catch (error) {
+                alert(`Error performing ${action} on ${name}: ${error.message}`);
+            }
+        }
+
+        function viewEvidence(path) {
+            // For now, just log the path
+            console.log('Viewing evidence:', path);
+            alert('Evidence path: ' + path);
+        }
+    </script>
+</body>
+</html>
