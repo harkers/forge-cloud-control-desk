@@ -6,17 +6,34 @@ A lightweight operations and governance platform for Google Cloud virtual machin
 
 Forge Compute Control Desk gives you one place to request, approve, provision, update, monitor, and report on Compute Engine workloads with clear approvals, recorded evidence, operational visibility, and lightweight reporting.
 
+It also now carries a **product extension for managed outbound email relay infrastructure** on GCP.
+
 ## Why This Fits Compute Engine
 
 Compute Engine is API-driven but has per-project rate quotas and concurrent-operation limits. That makes a governed workflow platform a better fit than ad hoc scripts scattered across machines and inboxes.
 
-## MVP Scope (v1)
+## MVP Scope (core product)
 
 1. **VM request & approval** — Gmail-based approval workflow
 2. **VM lifecycle actions** — create, start, stop, resize, inspect
 3. **Live asset register** — Sheets-based inventory and change log
 4. **Evidence storage** — Drive-based implementation packs and runbooks
 5. **Notifications** — Gmail for status updates and summaries
+
+## Extension scope: Forge Email Server
+
+The Forge Email Server is now documented as a GCCD extension.
+Its validated shape is:
+
+```text
+application or internal system → Postfix relay on GCP VM → SendGrid on 587
+```
+
+### Extension boundaries
+- outbound relay only
+- no inbound MX hosting in the baseline
+- no mailbox hosting / IMAP / webmail baseline
+- Cloudflare Access only for human-facing HTTP applications related to the workflow
 
 ## Architecture
 
@@ -27,18 +44,21 @@ Compute Engine is API-driven but has per-project rate quotas and concurrent-oper
 | Evidence | Drive API | Design docs, runbooks, change records |
 | Register | Sheets API | VM inventory, cost tracker, change log |
 | Awareness | Service Health API | Google Cloud service events |
+| Extension | Postfix + SendGrid | outbound relay for operational/application mail |
 
 ## Key Constraints
 
 - Compute Engine rate/quota awareness (batched, backoff retry)
 - Narrow API scopes (least privilege)
 - Control workflows over free-for-all automation
+- For the email extension: no normal design dependence on outbound port 25 from GCP
 
 ## Project Status
 
 - **Forge Pipeline**: `project-20260330044222184857`
 - **GitHub**: https://github.com/harkers/forge-cloud-control-desk
+- **Extension doc**: `EMAIL-SERVER-EXTENSION.md`
 
 ## Next Steps
 
-See `ROADMAP.md` for the 30/60/90 plan and detailed phase breakdown.
+See `ROADMAP.md` for the core plan and the email extension milestones.

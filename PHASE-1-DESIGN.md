@@ -2,15 +2,16 @@
 
 ## Goal
 
-Freeze the MVP, enable APIs, define the auth model, define the register schema, define the evidence structure.
+Freeze the MVP, enable APIs, define the auth model, define the register schema, and define the evidence structure.
 
 ## Deliverables
 
-- [ ] Architecture note
-- [ ] Data model
-- [ ] Action catalogue
-- [ ] Confirmation model
+- [ ] architecture note
+- [ ] data model
+- [ ] action catalogue
+- [ ] confirmation model
 - [ ] API enablement checklist
+- [ ] extension-boundary note for governed product add-ons
 
 ## Architecture Note
 
@@ -19,95 +20,138 @@ Freeze the MVP, enable APIs, define the auth model, define the register schema, 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
 | Frontend | Simple internal dashboard | Requests, inventory, status |
-| Control Layer | Python/Node.js service | Workflow engine, orchestration |
+| Control Layer | Python service | Workflow engine, orchestration |
 | Integration Layer | Google Cloud APIs | Compute Engine, Gmail, Drive, Sheets, Service Health |
+| Extension integration | product-specific adapters | bind selected workloads into the same register/evidence model |
 
 ### Auth Model
 
-**Recommendation:** Separate service identities per integration area (eventually), but for solo MVP a simpler model is acceptable if scopes stay narrow.
+Separate service identities per integration area is still the preferred direction. For solo MVP, simplified credentials are acceptable if scopes stay narrow and documented.
 
 ### Environment Model
 
 | Environment | Naming Convention | Zone Strategy |
 |-------------|-------------------|---------------|
-| dev | `{env}-{service}-{id}` | Single region/zone for MVP |
-| prod | `{env}-{service}-{id}` | Multi-zone awareness later |
+| dev | `{env}-{service}-{id}` | single region/zone for MVP |
+| prod | `{env}-{service}-{id}` | multi-zone awareness later |
 
 ### API Enablement Checklist
 
-| API | Status | Scopes Required |
-|-----|--------|-----------------|
-| Compute Engine API | `pending` | `compute.roles.viewer`, `compute.instances.create`, `compute.instances.update` |
-| Gmail API | `pending` | `gmail.send`, `gmail.compose` |
-| Drive API | `pending` | `drive.file`, `drive.create` |
-| Sheets API | `pending` | `spreadsheets`, `drive.file` |
-| Service Health API | `pending` | `cloud-platform` |
+| API | Status | Notes |
+|-----|--------|-------|
+| Compute Engine API | baseline in use | VM lifecycle actions |
+| Gmail API | partial / constrained | service-account limitations require fallback handling |
+| Drive API | partial / constrained | local fallback documented where needed |
+| Sheets API | baseline in use | live operational register |
+| Service Health API | later phase | upstream context |
 
-### Register Schema (Sheets)
+## Register Schema (Sheets)
 
-**Tab: VM Register**
+### Tab: VM Register
 
 | Column | Type | Description |
 |--------|------|-------------|
 | instance_name | text | VM instance name |
 | project | text | GCP project ID |
 | zone | text | Compute zone |
-| machine_type | text | e.g., `e2-medium` |
-| owner | text | Operator/owner |
-| purpose | text | Business purpose |
+| machine_type | text | instance type |
+| owner | text | operator / owner |
+| purpose | text | business purpose |
 | environment | text | dev/prod/staging |
 | status | text | running/stopped/failed |
 | last_action | text | create/start/stop/restart |
 | last_action_result | text | success/pending/failed |
-| change_reference | text | Action ID or timestamp |
-| evidence_link | text | Drive evidence folder URL |
-| notes | text | Free-text notes |
+| change_reference | text | action ID or timestamp |
+| evidence_link | text | evidence folder URL or path |
+| notes | text | free-text notes |
 
-### Evidence Structure (Drive)
+### Extension tab: Mail Domains
 
-**Folder: `/vm-evidence/`**
+This tab is for the Forge Email Server extension only.
 
-| Subfolder | Contents |
-|-----------|----------|
-| `YYYY-MM/` | Monthly evidence packs |
-| `{instance_name}/` | Per-VM evidence subfolder |
-| `YYYYMMDD-HHMMSS-{action}.md` | Individual evidence records |
+| Column | Type | Description |
+|--------|------|-------------|
+| domain | text | sending domain / subdomain |
+| relay_vm | text | relay VM name |
+| relay_provider | text | SendGrid |
+| relay_port_primary | number | 587 |
+| relay_port_fallbacks | text | `465,2525` |
+| authenticated_domain_status | text | pending / verified / failed |
+| dmarc_policy | text | none / quarantine / reject |
+| event_webhook_status | text | disabled / enabled / verified |
+| evidence_link | text | evidence URL/path |
+| notes | text | operational notes |
 
-### Evidence Pack Template
+## Evidence Structure
 
-```yaml
-timestamp: 2026-03-30T05:00:00Z
-requested_action: start
-target_vm:
-  instance_name: my-vm
-  project: my-project
-  zone: us-central1-a
-parameters:
-  - key: reason
-    value: "scheduled maintenance"
-api_response_summary: "Operation started"
-final_operation_result: "DONE"
-register_row_link: "https://docs.google.com/spreadsheets/d/..."
-operator_identity: "stuharker@gmail.com"
-notes: "Scheduled weekly restart"
+### Core evidence
+
+```text
+/vm-evidence/
+  YYYY-MM/
+    {instance_name}/
+      YYYYMMDD-HHMMSS-{action}.md
 ```
 
-### Confirmation Model
+### Extension evidence (mail relay)
+
+```text
+/mail-evidence/
+  {domain-or-subdomain}/
+    relay-config/
+    sendgrid-auth/
+    webhook/
+    validation/
+```
+
+## Evidence Pack Template
+
+```yaml
+timestamp: 2026-03-31T00:00:00Z
+requested_action: create
+target_vm:
+  instance_name: forge-mail-server
+  project: 301823798218
+  zone: europe-west2-b
+parameters:
+  - key: purpose
+    value: outbound relay
+api_response_summary: operation started
+final_operation_result: DONE
+register_row_link: https://docs.google.com/...
+operator_identity: stuart.harker@orderededge.co.uk
+notes: relay extension provisioned via GCCD
+```
+
+## Confirmation Model
 
 | Action | Confirmation Required |
 |--------|----------------------|
-| Read/inspect | None |
-| Start/stop/restart | On-screen |
-| Create | On-screen + Gmail receipt |
+| Read/inspect | none |
+| Start/stop/restart | on-screen |
+| Create VM | on-screen + evidence |
+| Provision relay extension | on-screen + evidence |
+| Destructive extension changes | explicit confirmation |
+
+## Extension boundary rule
+
+A governed extension must state:
+- what the product actually is
+- what is explicitly out of scope
+- what evidence it adds to GCCD
+- whether it changes the register schema
+
+The Forge Email Server extension passes this rule only as an **outbound relay** product.
 
 ## Go/No-Go Checkpoint
 
 You know exactly:
-- Which actions are in scope
-- Where every output will be stored (Sheets, Drive, Gmail)
-- How confirmation works
-- What the register schema looks like
+- which actions are in scope
+- where every output will be stored
+- how confirmation works
+- what the register schema looks like
+- how extension evidence will be separated from core VM evidence
 
 ## Next Step
 
-Proceed to Phase 2 when this is signed off — build the thin end-to-end flow for one safe VM action (start or inspect).
+Proceed when the thin end-to-end flow is stable and the extension workload can inherit the same evidence discipline without redefining the core platform.
