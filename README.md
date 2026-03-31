@@ -40,8 +40,8 @@ application or internal system → Postfix relay on GCP VM → SendGrid on 587
 | Layer | Service | Purpose |
 |-------|---------|---------|
 | Execution | Compute Engine API | VM create/start/stop/resize/tag |
-| Workflow | Gmail API | Approvals, notifications, digests |
-| Evidence | Drive API | Design docs, runbooks, change records |
+| Workflow | Local notifications | Approvals, notifications, digests (Gmail deferred to Phase N+1) |
+| Evidence | Local evidence packs / Drive-ready structure | Design docs, runbooks, change records |
 | Register | Sheets API | VM inventory, cost tracker, change log |
 | Awareness | Service Health API | Google Cloud service events |
 | Extension | Postfix + SendGrid | outbound relay for operational/application mail |

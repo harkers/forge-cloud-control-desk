@@ -41,6 +41,7 @@ SERVICE_ACCOUNT_FILE = os.environ.get(
     "GCP_SERVICE_ACCOUNT_JSON", "/home/stu/.config/gcp/forge-ccd-service-account.json"
 )
 SHEETS_SPREADSHEET_ID = os.environ.get("SHEETS_SPREADSHEET_ID")
+REGISTER_SHEET_NAME = os.environ.get("REGISTER_SHEET_NAME", "Sheet1")
 DRIVE_EVIDENCE_FOLDER_ID = os.environ.get("DRIVE_EVIDENCE_FOLDER_ID", "/tmp/forge-ccd-evidence")
 GMAIL_SENDER_EMAIL = os.environ.get("GMAIL_SENDER_EMAIL", "stuharker@gmail.com")
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
@@ -233,15 +234,38 @@ def poll_operation(
     return {"success": False, "error": "Timeout waiting for operation completion"}
 
 
+def _status_for_action(action: str, success: bool) -> str:
+    """Map workflow action to resulting VM status."""
+    if not success:
+        return "unknown"
+
+    return {
+        "create": "running",
+        "start": "running",
+        "stop": "stopped",
+        "restart": "running",
+        "delete": "deleted",
+    }.get(action, "unknown")
+
+
+
 def update_sheets_register(
     instance_name: str,
     action: str,
     success: bool,
     operation_id: str,
+    machine_type: str = "",
+    notes: str = "",
 ) -> bool:
-    """Update Sheets register with VM action result."""
+    """Upsert Sheets register with VM action result.
+
+    - Existing rows are updated in place.
+    - Create/delete can create a row if one does not exist yet.
+    """
     if sheets is None:
         init_sheets()
+
+    register_range = f"{REGISTER_SHEET_NAME}!A:M"
 
     # Find the row for this instance
     result = (
@@ -249,52 +273,64 @@ def update_sheets_register(
         .values()
         .get(
             spreadsheetId=SHEETS_SPREADSHEET_ID,
-            range="VM Register!A:A",
+            range=register_range,
         )
         .execute()
     )
     rows = result.get("values", [])
 
     row_num = None
-    for i, row in enumerate(rows, start=2):  # Skip header, start at row 2
+    existing_row = []
+    for i, row in enumerate(rows[1:], start=2):  # Skip header, start at row 2
         if row and row[0] == instance_name:
             row_num = i
+            existing_row = row
             break
 
-    if not row_num:
+    current_time = datetime.utcnow().isoformat() + "Z"
+    status = _status_for_action(action, success)
+    note_text = notes or f"Completed at {current_time} by forge-ccd"
+
+    def col(idx: int, default: str = "") -> str:
+        return existing_row[idx] if idx < len(existing_row) else default
+
+    values = [[
+        instance_name,                     # A instance_name
+        col(1, PROJECT_ID),               # B project
+        col(2, ZONE),                     # C zone
+        machine_type or col(3, ""),      # D machine_type
+        col(4, ""),                      # E owner
+        col(5, ""),                      # F purpose
+        col(6, ""),                      # G environment
+        status,                           # H status
+        action,                           # I last_action
+        "success" if success else "failed",  # J last_action_result
+        operation_id,                     # K change_reference
+        col(11, ""),                     # L evidence_link
+        note_text,                        # M notes
+    ]]
+
+    if row_num:
+        update_range = f"{REGISTER_SHEET_NAME}!A{row_num}:M{row_num}"
+        sheets.spreadsheets().values().update(
+            spreadsheetId=SHEETS_SPREADSHEET_ID,
+            range=update_range,
+            valueInputOption="USER_ENTERED",
+            body={"values": values},
+        ).execute()
+        return True
+
+    if action not in {"create", "delete"}:
         print(f"Instance {instance_name} not found in Sheets register")
         return False
 
-    # Update the row
-    update_range = f"VM Register!A{row_num}:M{row_num}"
-    current_time = datetime.utcnow().isoformat() + "Z"
-
-    values = [
-        [
-            instance_name,  # instance_name
-            PROJECT_ID,  # project
-            ZONE,  # zone
-            "",  # machine_type
-            "",  # owner
-            "",  # purpose
-            "",  # environment
-            "running" if success else "unknown",  # status
-            action,  # last_action
-            "success" if success else "failed",  # last_action_result
-            operation_id,  # change_reference
-            "",  # evidence_link
-            f"Completed at {current_time} by forge-ccd",  # notes
-        ]
-    ]
-
-    request = sheets.spreadsheets().values().update(
+    sheets.spreadsheets().values().append(
         spreadsheetId=SHEETS_SPREADSHEET_ID,
-        range=update_range,
+        range=register_range,
         valueInputOption="USER_ENTERED",
+        insertDataOption="INSERT_ROWS",
         body={"values": values},
-    )
-    response = request.execute()
-
+    ).execute()
     return True
 
 
@@ -314,6 +350,14 @@ def write_drive_evidence(
 
     # Create evidence content
     current_time = datetime.utcnow().isoformat() + "Z"
+    success_messages = {
+        "create": "The instance was successfully created.",
+        "delete": "The instance was successfully deleted.",
+        "start": "The instance was successfully started.",
+        "stop": "The instance was successfully stopped.",
+        "restart": "The instance was successfully restarted.",
+    }
+
     evidence_content = f"""# {action.upper()} Instance: {instance_name}
 
 **Timestamp:** {current_time}
@@ -323,7 +367,7 @@ def write_drive_evidence(
 **Zone:** {ZONE}
 **Operation:** {operation_id}
 **Status:** {'SUCCESS' if success else 'FAILED'}
-**Result:** {'The instance was successfully started.' if success else 'The operation failed.'}
+**Result:** {success_messages.get(action, 'The operation completed successfully.') if success else 'The operation failed.'}
 
 ## Parameters
 """
@@ -625,7 +669,14 @@ def create_instance_workflow(
     # Step 3: Update Sheets
     print("Step 3: Updating Sheets register...")
     try:
-        update_sheets_register(instance_name, "create", True, operation_id)
+        update_sheets_register(
+            instance_name,
+            "create",
+            True,
+            operation_id,
+            machine_type=machine_type,
+            notes=f"Created at {datetime.utcnow().isoformat()}Z by forge-ccd",
+        )
     except Exception as e:
         # Sheets update is non-fatal for create; the VM exists regardless
         print(f"Warning: Sheets update failed: {e}")
@@ -683,7 +734,13 @@ def delete_instance_workflow(instance_name: str, reason: str = "User requested d
     # Step 3: Update Sheets
     print("Step 3: Updating Sheets register...")
     try:
-        update_sheets_register(instance_name, "delete", True, operation_id)
+        update_sheets_register(
+            instance_name,
+            "delete",
+            True,
+            operation_id,
+            notes=f"Deleted at {datetime.utcnow().isoformat()}Z by forge-ccd",
+        )
     except Exception as e:
         print(f"Warning: Sheets update failed: {e}")
 
