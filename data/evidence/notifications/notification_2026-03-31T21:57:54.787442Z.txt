@@ -1,0 +1,12 @@
+# [SUCCESS] forge-rt-225452 deleted
+
+Instance forge-rt-225452 was successfully deleted.
+
+Project: 301823798218
+Zone: europe-west2-b
+Operation: operation-1774994111823-64e5905837d07-7b788c4f-92327194
+Evidence: /home/stu/.openclaw/workspace/projects/forge-cloud-control-desk/data/evidence/forge-rt-225452_2026-03-31_delete.md
+Reason: Automatic cleanup after disposable roundtrip test
+
+Timestamp: 2026-03-31T21:57:54.787442Z
+Local Evidence Folder: /home/stu/.openclaw/workspace/projects/forge-cloud-control-desk/data/evidence/notifications

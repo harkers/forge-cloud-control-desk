@@ -31,6 +31,7 @@ from .start_instance import (
     list_instances_workflow,
     generate_weekly_governance_report,
 )
+from .daily_digest import generate_daily_digest
 
 __all__ = [
     "GCP_PROJECT_ID",
@@ -59,4 +60,5 @@ __all__ = [
     "inspect_instance_workflow",
     "list_instances_workflow",
     "generate_weekly_governance_report",
+    "generate_daily_digest",
 ]

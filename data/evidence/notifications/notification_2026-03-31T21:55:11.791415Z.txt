@@ -1,0 +1,12 @@
+# [SUCCESS] forge-rt-225452 inspected
+
+Instance forge-rt-225452 inspection completed.
+
+Project: 301823798218
+Zone: europe-west2-b
+Status: RUNNING
+Machine Type: e2-micro
+Evidence: /home/stu/.openclaw/workspace/projects/forge-cloud-control-desk/data/evidence/inspections/forge-rt-225452_2026-03-31_inspect.md
+
+Timestamp: 2026-03-31T21:55:11.791415Z
+Local Evidence Folder: /home/stu/.openclaw/workspace/projects/forge-cloud-control-desk/data/evidence/notifications

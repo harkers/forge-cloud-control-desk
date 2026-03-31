@@ -1,0 +1,12 @@
+# [SUCCESS] forge-rt-224659 deleted
+
+Instance forge-rt-224659 was successfully deleted.
+
+Project: 301823798218
+Zone: europe-west2-b
+Operation: operation-1774993637631-64e58e93fe7e5-5df50d1c-2ce37e4f
+Evidence: /home/stu/.openclaw/workspace/projects/forge-cloud-control-desk/data/evidence/forge-rt-224659_2026-03-31_delete.md
+Reason: Automatic cleanup after disposable roundtrip test
+
+Timestamp: 2026-03-31T21:49:58.304105Z
+Local Evidence Folder: /home/stu/.openclaw/workspace/projects/forge-cloud-control-desk/data/evidence/notifications

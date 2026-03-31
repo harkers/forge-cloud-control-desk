@@ -1,0 +1,14 @@
+# [SUCCESS] forge-rt-224659 created
+
+Instance forge-rt-224659 was successfully created.
+
+Project: 301823798218
+Zone: europe-west2-b
+Machine Type: e2-micro
+Disk: 10GB
+Operation: operation-1774993619763-64e58e82f40e5-4a818d5f-72d5c06b
+Evidence: /home/stu/.openclaw/workspace/projects/forge-cloud-control-desk/data/evidence/forge-rt-224659_2026-03-31_create.md
+Reason: Disposable roundtrip test with cleanup
+
+Timestamp: 2026-03-31T21:47:17.455696Z
+Local Evidence Folder: /home/stu/.openclaw/workspace/projects/forge-cloud-control-desk/data/evidence/notifications

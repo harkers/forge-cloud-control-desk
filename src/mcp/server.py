@@ -227,6 +227,17 @@ TOOLS = [
             "required": [],
         },
     ),
+    Tool(
+        name="digest_daily",
+        description="Generate a daily governance digest from the evidence store for a given date",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "date": {"type": "string", "description": "ISO date YYYY-MM-DD to digest (defaults to today UTC)"},
+            },
+            "required": [],
+        },
+    ),
 ]
 
 # Create MCP server
@@ -406,6 +417,22 @@ async def handle_call_tool(request: CallToolRequest) -> Dict[str, Any]:
             "content": [
                 TextContent(
                     type="text", text=f"Report generated: {report_filepath}\n\n" + report_content
+                )
+            ]
+        }
+
+    elif tool_name == "digest_daily":
+        from src.core.daily_digest import generate_daily_digest
+
+        date_arg = arguments.get("date") or None
+        result = generate_daily_digest(date_arg)
+        return {
+            "content": [
+                TextContent(
+                    type="text",
+                    text=json.dumps({k: v for k, v in result.items() if k != "report_content"}, indent=2)
+                    + "\n\n"
+                    + result.get("report_content", ""),
                 )
             ]
         }

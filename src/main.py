@@ -13,7 +13,7 @@ import os
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
-from src.core.start_instance import (
+from src.core import (
     create_instance_workflow,
     delete_instance_workflow,
     start_instance_workflow,
@@ -22,6 +22,7 @@ from src.core.start_instance import (
     inspect_instance_workflow,
     list_instances_workflow,
     generate_weekly_governance_report,
+    generate_daily_digest,
 )
 
 COMMANDS = {
@@ -33,6 +34,7 @@ COMMANDS = {
     "inspect": ("inspect_instance_workflow", True),
     "list": ("list_instances_workflow", False),
     "report": ("generate_weekly_governance_report", False),
+    "digest": ("generate_daily_digest", False),
 }
 
 
@@ -108,6 +110,14 @@ def main():
         list_instances_workflow()
     elif command == "report":
         generate_weekly_governance_report()
+    elif command == "digest":
+        result = generate_daily_digest()
+        print(f"Digest: {result['total_actions']} actions for {result['date']}")
+        print(f"Report: {result['report_path']}")
+        if result["instances"]:
+            print("Instances:", ", ".join(result["instances"]))
+        else:
+            print("No actions found.")
 
 
 if __name__ == "__main__":

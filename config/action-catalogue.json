@@ -1,26 +1,71 @@
 {
-  "read": {
-    "name": "list_instances",
-    "risk_level": "low",
-    "needs_confirmation": false,
-    "needs_drive_evidence": false
-  },
   "create": {
     "name": "create_instance",
     "risk_level": "high",
     "needs_confirmation": "onscreen+notification",
-    "needs_drive_evidence": true
+    "needs_drive_evidence": true,
+    "evidence_action": "create",
+    "description": "Provision a new VM from baseline Debian 12 config"
   },
   "delete": {
     "name": "delete_instance",
     "risk_level": "high",
     "needs_confirmation": "onscreen+notification",
-    "needs_drive_evidence": true
+    "needs_drive_evidence": true,
+    "evidence_action": "delete",
+    "description": "Permanently remove a VM (irreversible)"
   },
-  "write": {
-    "name": "resize",
-    "risk_level": "high",
+  "start": {
+    "name": "start_instance",
+    "risk_level": "medium",
     "needs_confirmation": "onscreen+notification",
-    "needs_drive_evidence": true
+    "needs_drive_evidence": true,
+    "evidence_action": "start",
+    "description": "Start a stopped VM"
+  },
+  "stop": {
+    "name": "stop_instance",
+    "risk_level": "medium",
+    "needs_confirmation": "onscreen+notification",
+    "needs_drive_evidence": true,
+    "evidence_action": "stop",
+    "description": "Stop a running VM"
+  },
+  "restart": {
+    "name": "restart_instance",
+    "risk_level": "medium",
+    "needs_confirmation": "onscreen+notification",
+    "needs_drive_evidence": true,
+    "evidence_action": "restart",
+    "description": "Reset a running VM"
+  },
+  "inspect": {
+    "name": "inspect_instance",
+    "risk_level": "low",
+    "needs_confirmation": false,
+    "needs_drive_evidence": true,
+    "evidence_action": "inspect",
+    "description": "Read current VM state and write inspection record"
+  },
+  "list": {
+    "name": "list_instances",
+    "risk_level": "low",
+    "needs_confirmation": false,
+    "needs_drive_evidence": false,
+    "description": "List all VM instances and their current status"
+  },
+  "digest": {
+    "name": "generate_daily_digest",
+    "risk_level": "none",
+    "needs_confirmation": false,
+    "needs_drive_evidence": false,
+    "description": "Scan evidence store and produce a daily governance digest"
+  },
+  "report": {
+    "name": "generate_weekly_governance_report",
+    "risk_level": "none",
+    "needs_confirmation": false,
+    "needs_drive_evidence": false,
+    "description": "Query live VM state and produce a weekly governance report"
   }
 }
