@@ -96,12 +96,12 @@ Governance platform for Google Compute Engine VM lifecycle, with structured appr
 - Phase 4D — Capture delivery telemetry through Event Webhook
 - Phase 4E — Record mail-domain evidence and status in GCCD
 
-### Phase 5 — Governance Hardening
-- Exception handling, approval overrides
-- Retention rules for exported reports
-- Stronger audit views
-- Extension retirement runbooks
-- Hardening for relay-runbook operations
+### Phase 5 — Governance Hardening ✅ COMPLETE 2026-04-02
+- ✅ Exception handling framework with retry, circuit breaker, manual override
+- ✅ Retention automation with configurable policies
+- ✅ Enhanced audit views with SLA metrics
+- ✅ Extension retirement runbooks (mandatory for Phase 4 acceptance)
+- ⏳ Approval overrides UI (Phase N+1)
 
 ## Phase N+1 — Gmail Integration
 - Gmail approval loop (when OAuth delegation is validated)
@@ -134,12 +134,14 @@ Before any extension is accepted into GCCD, the following must be defined:
 - Retirement / shutdown path (mandatory)
 
 ## Done Checklist
-- [ ] Provision and manage Compute Engine VMs
-- [ ] Send and track local approval/notification messages
-- [ ] Maintain a live asset and change register
-- [ ] Store evidence packs and reports
-- [ ] Surface Google Cloud service disruptions
-- [ ] Team ops model operational for extensions
-- [ ] Extension retirement plans documented before acceptance
-- [ ] (Phase 4) Provision managed outbound relay VM through GCCD
-- [ ] (Phase 4) Capture relay-specific evidence and test results
+- [x] Provision and manage Compute Engine VMs
+- [x] Send and track local approval/notification messages
+- [x] Maintain a live asset and change register
+- [x] Store evidence packs and reports
+- [x] Surface Google Cloud service disruptions
+- [x] Team ops model operational for extensions
+- [x] Extension retirement plans documented before acceptance
+- [x] (Phase 4) Provision managed outbound relay VM through GCCD
+- [x] (Phase 4) Capture relay-specific evidence and test results
+
+**Status: MVP COMPLETE ✅**
