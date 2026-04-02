@@ -81,10 +81,11 @@ Governance platform for Google Compute Engine VM lifecycle, with structured appr
 - Document team ops runbook ✅ (see docs/TEAM-OPS-RUNBOOK.md)
 
 ### Phase 3 — Operations Visibility
-- Service Health integration
-- Status dashboard
-- Scheduled reporting (monthly governance packs)
-- Relay health / delivery event reporting (if Phase 4A is active)
+- [x] Design document created (docs/PHASE-3-DESIGN.md)
+- [ ] Service Health integration
+- [ ] Status dashboard (static HTML + Sheets)
+- [ ] Scheduled reporting (monthly governance packs)
+- [ ] Relay health / delivery event reporting (if Phase 4A is active)
 
 ### Phase 4 — Extension: Managed Outbound Relay (email)
 **Begins only after Phase 3 proves cross-product governance.**
