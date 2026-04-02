@@ -24,6 +24,7 @@ from src.core import (
     generate_weekly_governance_report,
     generate_daily_digest,
 )
+from src.integrations.service_health import check_service_health
 
 COMMANDS = {
     "create": ("create_instance_workflow", True),
@@ -35,6 +36,7 @@ COMMANDS = {
     "list": ("list_instances_workflow", False),
     "report": ("generate_weekly_governance_report", False),
     "digest": ("generate_daily_digest", False),
+    "health": ("check_service_health", False),
 }
 
 
@@ -118,6 +120,14 @@ def main():
             print("Instances:", ", ".join(result["instances"]))
         else:
             print("No actions found.")
+    elif command == "health":
+        evidence_root = os.path.join(project_root, "data", "evidence")
+        result = check_service_health(evidence_root)
+        print(f"Service Health Check: {result['status']}")
+        print(f"Region: {result['region']}")
+        print(f"Active Incidents: {result['active_incidents']}")
+        if 'evidence_path' in result:
+            print(f"Evidence: {result['evidence_path']}")
 
 
 if __name__ == "__main__":
