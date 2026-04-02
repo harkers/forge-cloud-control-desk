@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from flask import Flask, render_template, jsonify
 from integrations.service_health import check_service_health, ServiceHealthClient
-from integrations.compute_vm import ComputeVMClient
+from core import list_instances_workflow
 
 # Configuration
 DASHBOARD_PORT = int(os.getenv('DASHBOARD_PORT', 5001))
@@ -34,17 +34,18 @@ app.config['SECRET_KEY'] = os.getenv('DASHBOARD_SECRET_KEY', 'gccd-dev-key-chang
 def get_vm_summary():
     """Get VM inventory summary."""
     try:
-        client = ComputeVMClient()
-        vms = client.list_vms()
+        # list_instances_workflow returns a dict with 'instances' key
+        result = list_instances_workflow()
+        instances = result.get('instances', [])
         
-        running = sum(1 for vm in vms if vm.get('status') == 'RUNNING')
-        stopped = sum(1 for vm in vms if vm.get('status') == 'TERMINATED')
+        running = sum(1 for vm in instances if vm.get('status') == 'RUNNING')
+        stopped = sum(1 for vm in instances if vm.get('status') == 'TERMINATED')
         
         return {
-            'total': len(vms),
+            'total': len(instances),
             'running': running,
             'stopped': stopped,
-            'vms': vms[:10],  # Limit to 10 for dashboard
+            'vms': instances[:10],  # Limit to 10 for dashboard
             'status': 'ok'
         }
     except Exception as e:
