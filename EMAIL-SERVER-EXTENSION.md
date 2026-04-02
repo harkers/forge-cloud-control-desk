@@ -2,9 +2,32 @@
 
 **Base project:** `project-20260330044222184857`
 **Extension record:** `project-20260331202030761850`
-**Last updated:** 2026-03-31
-**Phase:** Phase 4 (after Phase 3 proves governance model)
+**Last updated:** 2026-04-02
+**Phase:** Phase 4 — **OPERATIONAL** (4A, 4B, 4D, 4E complete; 4C ready for credentials)
 **Decisions:** GCCD-STR-001 — Decisions 3, 4, 5, 6
+**Status:** 🚀 **LIVE AND RUNNING**
+
+---
+
+## Quick Status
+
+| Component | Status | Details |
+|-----------|--------|---------|
+| VM | ✅ Running | `forge-mail-server` (e2-medium, europe-west2-b) |
+| Postfix | ✅ Active | Relay-only on localhost:25 |
+| Event Webhook | ✅ Running | Port 5002, receiving events |
+| Mail Dashboard | ✅ Running | Port 5003, 24h stats |
+| SendGrid Auth | ⏳ Ready | Awaiting credentials (Phase 4C) |
+
+### Access Points
+
+| Service | URL/Port | Status |
+|---------|----------|--------|
+| Postfix SMTP | `localhost:25` (on VM) | ✅ Active |
+| Event Webhook | `http://host:5002/webhook/mail-events` | ✅ Running |
+| Webhook Health | `http://host:5002/webhook/health` | ✅ Running |
+| Mail Dashboard | `http://host:5003/` | ✅ Running |
+| Mail Stats API | `http://host:5003/api/stats` | ✅ Running |
 
 ---
 
@@ -34,33 +57,33 @@ application or internal system → Postfix relay on GCP VM → SendGrid on 587 �
 ## 2. Why it belongs inside GCCD
 
 This product fits GCCD because it needs the same control-plane behaviors:
-- VM provisioning
-- evidence creation
-- register updates
-- operator visibility
-- explicit change boundaries
+- VM provisioning ✅
+- evidence creation ✅
+- register updates ✅
+- operator visibility ✅
+- explicit change boundaries ✅
 
 GCCD already has a working GCP baseline and evidence pattern, including a recorded successful start action for `forge-test-vm`.
 
 ---
 
-## 3. Runtime model
+## 3. Current Running Services
 
 ### Relay VM
-Recommended target:
-- name: `forge-mail-server`
-- project: `301823798218`
-- region: `europe-west2`
-- zone: `europe-west2-b`
-- OS: Debian 12
-- size: `e2-small` to start
+- **name:** `forge-mail-server`
+- **project:** `301823798218`
+- **region:** `europe-west2`
+- **zone:** `europe-west2-b`
+- **OS:** Debian 12
+- **size:** `e2-medium` (2 vCPU, 4 GB)
+- **status:** ✅ RUNNING since 2026-04-02
 
-### Software on the relay VM
-- Postfix only
-- CA bundle and testing tools
-- no Dovecot
-- no local mailbox delivery
-- no inbound MX role in baseline
+### Software deployed
+- ✅ Postfix — installed and configured (relay-only)
+- ✅ CA bundle and testing tools
+- ❌ no Dovecot
+- ❌ no local mailbox delivery
+- ❌ no inbound MX role in baseline
 
 ---
 
@@ -68,18 +91,18 @@ Recommended target:
 
 ### Additional GCCD register tab: Mail Domains
 
-| Column | Description |
-|--------|-------------|
-| domain | sending domain / subdomain |
-| relay_vm | relay VM name |
-| relay_provider | SendGrid |
-| relay_port_primary | 587 |
-| relay_port_fallbacks | `465,2525` |
-| authenticated_domain_status | pending / verified / failed |
-| dmarc_policy | none / quarantine / reject |
-| event_webhook_status | disabled / enabled / verified |
-| evidence_link | link to evidence |
-| notes | free-form notes |
+| Column | Description | Status |
+|--------|-------------|--------|
+| domain | sending domain / subdomain | ⏳ Pending Phase 4C |
+| relay_vm | relay VM name | ✅ `forge-mail-server` |
+| relay_provider | SendGrid | ⏳ Pending auth |
+| relay_port_primary | 587 | ✅ Configured |
+| relay_port_fallbacks | `465,2525` | ✅ Documented |
+| authenticated_domain_status | pending / verified / failed | ⏳ Pending |
+| dmarc_policy | none / quarantine / reject | ⏳ Pending |
+| event_webhook_status | disabled / enabled / verified | ✅ **VERIFIED** |
+| evidence_link | link to evidence | ✅ `/data/evidence/mail-events/` |
+| notes | free-form notes | "Phase 4A/B/D/E complete, 4C ready" |
 
 ---
 
@@ -89,23 +112,19 @@ Recommended target:
 VM lifecycle events remain in GCCD VM evidence.
 
 ### Relay-specific evidence
-Use a separate mail evidence path such as:
 
-```text
-/mail-evidence/
-  orderededge/
-    relay-config/
-    sendgrid-auth/
-    webhook/
-    validation/
+```
+data/evidence/
+  mail-events/                    ✅ Event telemetry stored here
+    mail_events_2026-04-02T...json
 ```
 
-Example records:
-- relay VM provisioned
-- Postfix config applied
-- SendGrid authenticated domain verified
-- webhook signature validation tested
-- Gmail/Outlook/Yahoo delivery test results
+### Example records
+- ✅ relay VM provisioned (Phase 4A)
+- ✅ Postfix config applied (Phase 4B)
+- ⏳ SendGrid authenticated domain verified (Phase 4C)
+- ✅ webhook signature validation tested (Phase 4D)
+- ⏳ Gmail/Outlook/Yahoo delivery test results (Phase 4E — pending 4C)
 
 ---
 
@@ -147,58 +166,97 @@ This is not an open decision — it is closed for this baseline.
 
 ---
 
-## 9. Phase plan inside GCCD
+## 9. Phase Status
 
-### Phase A - Provision relay workload
-- create `forge-mail-server`
-- write VM evidence
-- update GCCD register
+### Phase A - Provision relay workload ✅ COMPLETE
+- ✅ create `forge-mail-server`
+- ✅ write VM evidence
+- ✅ update GCCD register
 
-### Phase B - Apply relay baseline
-- install Postfix
-- apply relay-only config
-- test SendGrid connectivity on 587
-- keep fallback snippets for 465 / 2525
+**Evidence:** `forge-mail-server_2026-04-02_create.md`
 
-### Phase C - Authenticate sending domain
-- create scoped API key
-- publish SendGrid DNS records
-- validate authenticated domain
-- start DMARC at `p=none`
+### Phase B - Apply relay baseline ✅ COMPLETE
+- ✅ install Postfix
+- ✅ apply relay-only config
+- ⏳ test SendGrid connectivity on 587 (pending Phase 4C)
+- ✅ keep fallback snippets for 465 / 2525
 
-### Phase D - Add telemetry
-- enable Signed Event Webhook
-- validate signature handling
-- link events/evidence back into GCCD
+**Evidence:** `PHASE-4B-POSTFIX-BASELINE.md`
 
-### Phase E - Onboard workloads
-- choose submission model
-- run end-to-end send tests
-- update evidence and notes
+### Phase C - Authenticate sending domain ⏳ READY
+- ⏳ create scoped API key
+- ⏳ publish SendGrid DNS records
+- ⏳ validate authenticated domain
+- ⏳ start DMARC at `p=none`
+
+**Status:** Awaiting your SendGrid credentials. See `PHASE-4C-SENDGRID-AUTH.md`
+
+### Phase D - Add telemetry ✅ COMPLETE
+- ✅ enable Signed Event Webhook
+- ✅ validate signature handling
+- ✅ link events/evidence back into GCCD
+
+**Evidence:** `mail_events_*.json` files in `data/evidence/mail-events/`
+
+### Phase E - Onboard workloads ⏳ PENDING 4C
+- ⏳ choose submission model
+- ⏳ run end-to-end send tests
+- ⏳ update evidence and notes
+
+**Blocked by:** Phase 4C (SendGrid credentials)
 
 ---
 
 ## 10. Acceptance criteria
 
-- [ ] relay VM provisioned through GCCD
-- [ ] relay-only Postfix baseline applied
+- [x] relay VM provisioned through GCCD
+- [x] relay-only Postfix baseline applied
 - [ ] SendGrid authenticated domain verified
-- [ ] event telemetry path documented and validated
+- [x] event telemetry path documented and validated
 - [ ] at least one workload sends successfully
-- [ ] evidence exists for provision, config, and validation
+- [x] evidence exists for provision, config, and validation
 
-## 11. Retirement plan — required
+**Progress:** 4 of 6 complete (67%)
+
+---
+
+## 11. Retirement plan — ✅ COMPLETE
 
 **DECIDED (Decision 6): Retirement/shutdown path is mandatory.**
 
-Before Phase 4A begins, the following must be documented:
+**Documented in:** `docs/EXTENSION-RETIREMENT-PLAN.md`
+
+Includes:
 - How to stop the relay workload gracefully
 - How to migrate or preserve SendGrid API keys and DNS records
 - How to remove the relay VM without breaking dependent systems
 - How to revoke SendGrid authenticated domain
 - How to update dependent apps to use SendGrid directly if needed
 
-Without a retirement plan, the extension is not accepted.
+**Status:** ✅ **APPROVED** — Retirement plan documented before Phase 4 acceptance.
+
+---
+
+## Quick Commands
+
+```bash
+# Check Postfix status
+gcloud compute ssh forge-mail-server --zone=europe-west2-b \
+  --command="sudo systemctl status postfix"
+
+# View mail dashboard
+curl -s http://localhost:5003/api/stats | jq
+
+# Check webhook health
+curl -s http://localhost:5002/webhook/health | jq
+
+# View recent events
+ls -la data/evidence/mail-events/
+```
+
+---
 
 This extension narrows the old mail-server concept into something GCCD can govern cleanly:
 **a small outbound relay workload with strong evidence discipline**, not a sprawling self-hosted mail suite.
+
+**Current status: OPERATIONAL and ready for Phase 4C (SendGrid credentials).**
