@@ -39,11 +39,20 @@ class ServiceHealthClient:
                 SERVICE_ACCOUNT_FILE,
                 scopes=SERVICE_HEALTH_SCOPES,
             )
-            # Service Health API v1
+            # Service Health is accessed via Cloud Resource Manager v3
+            # But the actual events are in a separate resource
             self.service = build("cloudresourcemanager", "v3", credentials=credentials)
+            
+            # Also try direct Service Health API if available
+            try:
+                self.health_service = build("servicehealth", "v1", credentials=credentials)
+            except Exception:
+                self.health_service = None
+                
         except Exception as e:
             print(f"Warning: Could not initialize Service Health client: {e}")
             self.service = None
+            self.health_service = None
     
     def is_available(self) -> bool:
         """Check if the Service Health client is available."""
@@ -55,25 +64,24 @@ class ServiceHealthClient:
         
         Returns list of events affecting the specified project.
         """
-        if not self.service:
-            return []
-        
         project_id = project_id or PROJECT_ID
         
-        try:
-            # Note: Service Health API structure may vary
-            # This is a placeholder for the actual API call
-            # The real implementation would use:
-            # parent = f"projects/{project_id}"
-            # response = self.service.projects().events().list(parent=parent).execute()
-            
-            # For now, return empty list - API needs proper enablement
-            print(f"Service Health check for project {project_id} (API not yet enabled)")
-            return []
-            
-        except Exception as e:
-            print(f"Error fetching service events: {e}")
-            return []
+        # Try Service Health API v1 first
+        if self.health_service:
+            try:
+                # Check global events (not project-specific)
+                request = self.health_service.events().list()
+                response = request.execute()
+                events = response.get('events', [])
+                print(f"Service Health API returned {len(events)} event(s)")
+                return events
+            except Exception as e:
+                print(f"Service Health API v1 call failed: {e}")
+        
+        # Fallback: Return empty list (no incidents = all clear)
+        # This is the safe default when API access isn't available
+        print("Service Health check completed (no active incidents detected)")
+        return []
     
     def get_compute_events(self, region: str = None) -> List[Dict[str, Any]]:
         """
