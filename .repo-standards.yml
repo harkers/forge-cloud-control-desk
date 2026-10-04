@@ -1,0 +1,16 @@
+version: 1
+standards_version: 1
+profile: infrastructure
+managed:
+  enabled: true
+  branch_prefix: chore/repo-standards
+  open_draft_pr: true
+  adoption_policy: preserve-local
+settings:
+  cloud_review: inherit
+  security_review: inherit
+  safety_policy_review: inherit
+  review_dissent: inherit
+include_components: []
+exclude_components: []
+exclude_paths: []
