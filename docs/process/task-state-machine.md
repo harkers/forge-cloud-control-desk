@@ -1,4 +1,4 @@
-<!-- Managed by harkers/repo-standards at revision 5371ef03. Use .repo-standards.yml overrides instead of editing this header away. -->
+<!-- Managed by harkers/repo-standards at revision d5afae46. Use .repo-standards.yml overrides instead of editing this header away. -->
 
 # Canonical Task State Machine
 
@@ -40,7 +40,47 @@ REPORTING
 PR_READY
   ↓
 DONE
+
+Fail-closed states (reachable from any active state during the assurance stages):
+BLOCKED_TOOLING
+BLOCKED_FINDING_TRACKING
 ```
+
+## Build Assurance gate
+
+`PR_READY` and `DONE` require a Verification Evidence Packet whose `state` is `PASS` for the commit under claim. The packet is the gate input, not a prose completion claim (see `standards/completion-evidence.md` and `process/completion-packet.md`).
+
+The fail-closed states:
+
+- `BLOCKED_TOOLING`: a required scanner, test runner or verification tool is unavailable. The state records `missing_control` and `missing_tool`; `tool unavailable` MUST NOT be recorded as `PASS`.
+- `BLOCKED_FINDING_TRACKING`: a blocking finding requires a durable issue reference and issue creation cannot be completed. A blocking finding without a durable issue reference blocks `PR_READY` / `DONE`.
+
+Both states block `PR_READY` / `DONE` until the missing tool becomes available or the finding is durably tracked and represented in the packet; the affected controls then re-run and the packet is regenerated.
+
+The assurance stages sit between `task validation` and `atomic commit`:
+
+```text
+task validation
+  → unit/integration tests
+  → secret detection
+  → SAST
+  → SBOM generation
+  → vulnerability scan
+  → profile-specific assurance checks
+  → classify findings
+  → create/update deduplicated finding issues where required
+  → atomic commit
+```
+
+## Planning decomposition
+
+Broad work is decomposed before execution under `docs/process/planning-decomposition.md`. A broad
+feature or epic remains a planning container; bounded executable child issues/WorkItems advance
+through this state machine independently.
+
+For decomposed work, an executable child may enter `PLAN_READY` only when its plan is dependency-valid,
+independently verifiable and satisfies the canonical child-plan contract. A dependent child may be
+fully documented but remains not ready for dispatch until its declared readiness conditions are met.
 
 ## TDD milestones inside `IN_PROGRESS`
 
@@ -107,8 +147,8 @@ FAILED → READY only after an explicit recovery/re-plan decision
 ## Gate definitions
 
 - `SPEC_READY`: problem, goals, non-goals, interfaces, data/events, failure modes, security and measurable acceptance criteria are defined.
-- `PLAN_READY`: bounded implementation tasks, dependencies, likely change surface and validation steps exist.
-- `READY`: dependencies, branch/worktree and execution context are resolved.
+- `PLAN_READY`: bounded implementation tasks, dependencies, likely change surface and validation steps exist; when work was decomposed, the active executable child also satisfies `docs/process/planning-decomposition.md` and all declared readiness conditions required before dispatch.
+- `READY`: dependencies and execution context are resolved. For any task that may mutate repository state, a single dedicated control-plane-assigned worktree MUST exist and be mechanically verified against the expected WorkItem, repository, branch and execution root before this state is entered. Read-only tasks may omit a worktree only when read-only behaviour is mechanically enforced. A worktree verification failure blocks the transition.
 - `TASK_IMPLEMENTED`: the active bounded task has an implementation delta and, where TDD applies, reached GREEN for every TDD-required behaviour with valid RED/GREEN evidence; it has not yet passed the full task-level targeted validation gate.
 - `TASK_VALIDATED`: targeted validation/regression checks for that task passed with captured evidence.
 - `COMMITTED`: Delivery Ops created an atomic commit for the validated task.
@@ -122,12 +162,19 @@ FAILED → READY only after an explicit recovery/re-plan decision
 - `REPORTING`: completion packet and engineering-memory handoff are generated.
 - `PR_READY`: CI and configured gates pass; PR may move from draft to ready.
 - `DONE`: repository completion policy is satisfied; a worker may not self-transition directly to this state.
+- `BLOCKED_TOOLING`: a required assurance tool is unavailable; the state records `missing_control` and `missing_tool` and blocks `PR_READY` / `DONE`.
+- `BLOCKED_FINDING_TRACKING`: a blocking finding has no durable issue reference because issue creation could not be completed; blocks `PR_READY` / `DONE`.
 
 ## Events
 
 Implementations should emit or record transitions and evidence milestones using stable event names such as:
 
 ```text
+worktree.allocated
+worktree.verified
+worktree.reverified
+worktree.violation
+worktree.released
 tdd.red
 tdd.green
 tdd.refactor

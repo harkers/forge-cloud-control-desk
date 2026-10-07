@@ -1,0 +1,282 @@
+# Managed by harkers/repo-standards at revision d5afae46. Use .repo-standards.yml overrides instead of editing this header away.
+# Reference verification workflow (template; not run from this repository).
+#
+# Standards: standards/build-assurance.md, standards/security-assurance.md.
+# Scanners are replaceable defaults, not fixed vendors: the tool per control
+# is overridable via workflow inputs. The workflow fails closed: it MUST NOT
+# pass when a required scanner is missing (state BLOCKED_TOOLING). The emitted
+# Verification Evidence Packet is bound to the commit under test (${GITHUB_SHA}).
+#
+# Every `uses:` is pinned to an immutable commit SHA with the version in a trailing
+# comment, and every scanner is downloaded from a pinned release URL. Nothing here
+# is a floating ref: not `latest`, not a major-version tag. Tool versions are
+# recorded in the packet (rs#74).
+
+name: Repo Standards Verification
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: >-
+          Baseline assurance profile (library|service|infrastructure|documentation).
+          Leave empty to use the profile declared in .repo-standards.yml.
+        required: false
+        default: ""
+      secret_detection_tool:
+        description: Secret-detection tool (default gitleaks; replaceable)
+        required: false
+        default: gitleaks
+      sast_tool:
+        description: SAST tool (default semgrep; replaceable)
+        required: false
+        default: semgrep
+      sbom_tool:
+        description: SBOM tool (default syft; replaceable)
+        required: false
+        default: syft
+      vulnerability_scan_tool:
+        description: Vulnerability-scan tool (default grype; replaceable)
+        required: false
+        default: grype
+      issue_creation:
+        description: Create/update issues for qualifying findings
+        required: false
+        default: "false"
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    # The `inputs` context is populated for workflow_dispatch ONLY. Resolving
+    # the tool names here with a fallback means a push or pull_request run gets
+    # the reference defaults rather than empty strings: previously every
+    # `${{ inputs.* }}` was empty off workflow_dispatch, so the fail-closed
+    # tooling check iterated over an empty name, reported nothing missing and
+    # the control reported itself satisfied (harkers/repo-standards#68). Each
+    # value is re-checked for emptiness in the "fail closed" step, so a blank
+    # resolution fails rather than passes.
+    #
+    # PROFILE is deliberately NOT set here. It is repository configuration, and
+    # a hardcoded fallback made every push and pull_request run evaluate the
+    # `library` baseline regardless of what the repository declared (rs#86).
+    # The "Resolve assurance profile" step below sets it for all later steps.
+    env:
+      SECRET_DETECTION_TOOL: ${{ inputs.secret_detection_tool || 'gitleaks' }}
+      SAST_TOOL: ${{ inputs.sast_tool || 'semgrep' }}
+      SBOM_TOOL: ${{ inputs.sbom_tool || 'syft' }}
+      VULNERABILITY_SCAN_TOOL: ${{ inputs.vulnerability_scan_tool || 'grype' }}
+      ISSUE_CREATION: ${{ inputs.issue_creation || 'false' }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Resolve assurance profile
+        # Repository configuration wins over the default; a dispatch input wins
+        # over both. Fails closed when neither exists, instead of silently
+        # evaluating a baseline the repository never declared (rs#86).
+        env:
+          DISPATCH_PROFILE: ${{ inputs.profile }}
+        run: |
+          set -euo pipefail
+          profile="${DISPATCH_PROFILE}"
+          if [ -z "$profile" ] && [ -f .repo-standards.yml ]; then
+            profile="$(sed -n 's/^profile:[[:space:]]*//p' .repo-standards.yml \
+              | head -n1 | tr -d '\"' | tr -d "'[:space:]")"
+          fi
+          if [ -z "$profile" ]; then
+            echo "::error::no assurance profile: set \`profile:\` in .repo-standards.yml, or run workflow_dispatch with a profile input"
+            echo "status=BLOCKED_TOOLING" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          case "$profile" in
+            library|service|infrastructure|documentation) ;;
+            *)
+              echo "::error::unknown assurance profile: ${profile}"
+              echo "status=BLOCKED_TOOLING" >> "$GITHUB_STEP_SUMMARY"
+              exit 1 ;;
+          esac
+          echo "PROFILE=${profile}" >> "$GITHUB_ENV"
+          echo "assurance profile: ${profile}"
+
+      # Install the four reference scanners at pinned versions (never
+      # `latest`; no unpinned `pip install <pkg>`). Pinned 2026-10-04, each
+      # verified to exist via the GitHub releases API / PyPI index:
+      #   gitleaks v8.30.1   github.com/gitleaks/gitleaks/releases/tag/v8.30.1
+      #   grype    v0.120.0  github.com/anchore/grype/releases/tag/v0.120.0
+      #   syft     v1.54.0   github.com/anchore/syft/releases/tag/v1.54.0
+      #   semgrep  1.179.0   pypi.org/project/semgrep/1.179.0
+      #   trivy    v0.75.0   github.com/aquasecurity/trivy/releases/tag/v0.75.0
+      #
+      # Scanner substitution: this step installs the DEFAULT reference set
+      # (the workflow-input defaults gitleaks/semgrep/syft/grype). A
+      # repository that overrides secret_detection_tool, sast_tool,
+      # sbom_tool or vulnerability_scan_tool with its own scanner MUST
+      # replace this install step with the installation of its own
+      # tool(s), or ensure the substituted tool(s) are preinstalled on the
+      # runner; the fail-closed check below resolves each tool from the
+      # inputs and fails BLOCKED_TOOLING for any tool it cannot find.
+      - name: Install reference scanners (pinned versions)
+        run: |
+          set -euo pipefail
+          # gitleaks v8.30.1 — pinned release download (official GitHub release)
+          curl -sSfL -o /tmp/gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz"
+          tar -xzf /tmp/gitleaks.tar.gz -C /usr/local/bin gitleaks
+          # grype v0.120.0 — pinned release download (official GitHub release)
+          curl -sSfL -o /tmp/grype.tar.gz \
+            "https://github.com/anchore/grype/releases/download/v0.120.0/grype_0.120.0_linux_amd64.tar.gz"
+          tar -xzf /tmp/grype.tar.gz -C /usr/local/bin grype
+          # syft v1.54.0 — pinned release download (official GitHub release)
+          curl -sSfL -o /tmp/syft.tar.gz \
+            "https://github.com/anchore/syft/releases/download/v1.54.0/syft_1.54.0_linux_amd64.tar.gz"
+          tar -xzf /tmp/syft.tar.gz -C /usr/local/bin syft
+          # semgrep 1.179.0 — pinned pip version (official PyPI package)
+          python3 -m pip install --disable-pip-version-check "semgrep==1.179.0"
+          # trivy v0.75.0 — pinned release download (official GitHub release).
+          # Trivy backs the infrastructure_scan producer for the
+          # `infrastructure` profile (rs#77).
+          curl -sSfL -o /tmp/trivy.tar.gz \
+            "https://github.com/aquasecurity/trivy/releases/download/v0.75.0/trivy_0.75.0_Linux-64bit.tar.gz"
+          tar -xzf /tmp/trivy.tar.gz -C /usr/local/bin trivy
+          # No silent success: every reference scanner MUST resolve on PATH
+          # and report a version, or this step fails the job.
+          for tool in gitleaks grype syft semgrep; do
+            if ! command -v "$tool" >/dev/null 2>&1; then
+              echo "::error::reference scanner missing after install step: ${tool}"
+              exit 1
+            fi
+            "$tool" --version 2>/dev/null || "$tool" version 2>/dev/null || {
+              echo "::error::reference scanner installed but not reporting a version: ${tool}"
+              exit 1
+            }
+          done
+
+      - name: Verify required scanner tooling (fail closed)
+        # BLOCKED_TOOLING: a scanner the selected profile needs must exist.
+        # `tool unavailable` MUST never be translated to PASS.
+        #
+        # Only the shipped reference producers for the selected profile are
+        # required here. A consumer-declared producer names its own tool and the
+        # assembler resolves it, so it is checked there.
+        #
+        # The required set is a bash array, not a word-split string: with word
+        # splitting an unset tool variable vanishes and the loop iterates over
+        # nothing, which is exactly the silent pass this step exists to prevent
+        # (rs#68).
+        run: |
+          set -euo pipefail
+          required=()
+          case "${PROFILE}" in
+            library|service)
+              required=("${SECRET_DETECTION_TOOL}" "${SAST_TOOL}" "${SBOM_TOOL}" "${VULNERABILITY_SCAN_TOOL}") ;;
+            infrastructure)
+              required=("${SECRET_DETECTION_TOOL}" "trivy") ;;
+            documentation)
+              required=("${SECRET_DETECTION_TOOL}") ;;
+            *)
+              echo "::error::unknown assurance profile: ${PROFILE}"
+              echo "status=BLOCKED_TOOLING" >> "$GITHUB_STEP_SUMMARY"
+              exit 1 ;;
+          esac
+          missing=""
+          unresolved=""
+          for tool in "${required[@]}"; do
+            if [ -z "$tool" ]; then
+              unresolved="${unresolved} <empty>"
+              continue
+            fi
+            if ! command -v "$tool" >/dev/null 2>&1; then
+              missing="${missing} ${tool}"
+            fi
+          done
+          if [ -n "${missing}" ] || [ -n "${unresolved}" ]; then
+            echo "::error::missing required assurance tools:${missing}"
+            echo "::error::unresolved assurance tool names:${unresolved}"
+            echo "status=BLOCKED_TOOLING" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          if [ -z "$PROFILE" ]; then
+            echo "::error::assurance profile did not resolve"
+            echo "status=BLOCKED_TOOLING" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          for tool in "${required[@]}"; do
+            echo "::group::${tool} version"
+            "$tool" --version 2>/dev/null || "$tool" version 2>/dev/null \
+              || echo "(version not reported)"
+            echo "::endgroup::"
+          done
+
+      - name: Prepare results directory
+        run: mkdir -p results
+
+      # Controls are resolved from the profile, not hardcoded: an
+      # `infrastructure` repository runs secret_detection and
+      # infrastructure_scan, a `library` repository runs the code controls. A
+      # control the profile requires but no producer can supply is recorded
+      # BLOCKED with the remediation, so the packet names what is missing
+      # instead of omitting it (rs#77).
+      #
+      # tools/assemble_results.py runs each producer, captures its exit code,
+      # parses the raw report into normalized findings, and writes
+      # results/results.json plus results/findings.json -- the two files the
+      # emit step consumes. The step exits 0 so the packet is always emitted:
+      # the packet's own state is what fails the run, and a FAIL finding must
+      # still reach the packet rather than being lost to an early exit.
+      #
+      # Commands are canonical for the default tool; a substituted tool MUST
+      # produce an equivalent machine-readable report at the same path
+      # (standards/build-assurance.md: Policy versus reference implementation).
+      # Consumer-supplied producers (tests, lint, policy_validation, ...) are
+      # declared in .repo-standards.yml under `assurance.producers`.
+
+      - name: Run assurance controls and assemble results
+        run: |
+          set -euo pipefail
+          python -m tools.assemble_results \
+            --profile "${PROFILE}" \
+            --repo-config .repo-standards.yml \
+            --results results \
+            --out results
+
+      - name: Emit verification evidence packet
+        # Packet is bound to the commit under test via --commit ${GITHUB_SHA}.
+        # Contract implemented by tools/emit_evidence.py (Task 9):
+        #   --profile     baseline assurance profile name
+        #   --repository  owner/name of the repository under test
+        #   --commit      commit SHA the evidence is bound to
+        #   --baseline    baseline profile used to resolve REQUIRED controls
+        #                 (tools/assurance.py)
+        #   --results     directory of raw scanner outputs
+        #   --findings    normalized findings JSON produced from --results
+        #   --out         Verification Evidence Packet to write
+        run: |
+          set -euo pipefail
+          python -m tools.emit_evidence \
+            --profile "${PROFILE}" \
+            --repository "${{ github.repository }}" \
+            --commit "${GITHUB_SHA}" \
+            --baseline "${PROFILE}" \
+            --results results \
+            --findings results/findings.json \
+            --out evidence.json
+
+      - name: Validate packet
+        run: |
+          set -euo pipefail
+          python tools/validate_evidence.py evidence.json
+
+      - name: Upload evidence and SBOM
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: verification-evidence-${{ github.sha }}
+          path: |
+            evidence.json
+            results/
+          retention-days: 30

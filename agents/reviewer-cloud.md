@@ -1,4 +1,4 @@
-<!-- Managed by harkers/repo-standards at revision 5371ef03. Use .repo-standards.yml overrides instead of editing this header away. -->
+<!-- Managed by harkers/repo-standards at revision d5afae46. Use .repo-standards.yml overrides instead of editing this header away. -->
 
 # reviewer-cloud
 
@@ -20,7 +20,7 @@ tracking, the finding contract, the decision contract and the last-turn review. 
 
 **Capability:** `REVIEW_CLOUD`
 **Default provider:** `ollama-cloud`
-**Default model:** `glm-5:cloud`
+**Default model:** `cloud-gpt-oss`
 
 ## Purpose
 
@@ -62,7 +62,7 @@ Every turn ends with this block. It is how the next agent continues without repl
 conversation. The full convergence rules are in `docs/process/agent-handoff.md`.
 
 ```yaml
-status: SUCCESS        # SUCCESS | PARTIAL | BLOCKED | FAILED
+status: PARTIAL        # SUCCESS | PARTIAL | BLOCKED | FAILED
 summary: >
   What was actually achieved this turn.
 evidence:
@@ -70,9 +70,17 @@ evidence:
 remaining:
   - Work still required for the current bounded objective.
 problems:
-  - Any error, failed test, defect or unresolved finding.
+  - id: DEFECT-001
+    priority: P0       # P0 | P1 | P2 | P3
+    state: OPEN        # OPEN | FIX_IN_PROGRESS | FOUND_AND_FIXED | VERIFIED_FIXED | DEFERRED | BLOCKED
+    summary: >
+      A deliberately false claim can pass the verification gate.
+    evidence:
+      - { ref: tests/test_spec_claims.py::test_false_claim_fails, type: test }
+    github_issue: "#123"   # issue ref | FIXED_IN_TURN | NOT_RAISED — BLOCKING REASON: <reason>
+highest_unresolved_priority: P0   # P0 | P1 | P2 | P3 | NONE
 proposed_next:
-  capability: TESTING_FAST
+  capability: REVIEW_CLOUD
   action: >
     One bounded action.
   reason: >

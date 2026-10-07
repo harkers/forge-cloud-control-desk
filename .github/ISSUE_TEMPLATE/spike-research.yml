@@ -1,0 +1,87 @@
+# Managed by harkers/repo-standards at revision d5afae46. Use .repo-standards.yml overrides instead of editing this header away.
+name: Spike / Research
+description: Time-bounded evidence-first investigation that must end with a decision gate
+title: "[Spike] "
+labels: []
+assignees: []
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What specific question must this spike answer?
+    validations:
+      required: true
+  - type: textarea
+    id: hypothesis
+    attributes:
+      label: Hypothesis
+      description: What do we currently expect, and why?
+    validations:
+      required: true
+  - type: textarea
+    id: decision_dependency
+    attributes:
+      label: Decision depending on this work
+      description: What implementation, routing, or architecture choice depends on the result?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence_required
+    attributes:
+      label: Evidence required
+      placeholder: "- benchmark / test / source evidence"
+    validations:
+      required: true
+  - type: textarea
+    id: experiments
+    attributes:
+      label: Experiments
+      description: Define method, inputs, expected outputs, and metrics.
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints
+      description: Include time/compute limits, scope, and any no-implementation boundary.
+    validations:
+      required: true
+  - type: textarea
+    id: metrics
+    attributes:
+      label: Metrics
+      description: Use only relevant measures such as correctness, latency, tokens/sec, memory, tool success, schema compliance, hallucination rate, or review precision.
+    validations:
+      required: true
+  - type: textarea
+    id: results
+    attributes:
+      label: Results
+      description: Record measured results and evidence references.
+    validations:
+      required: false
+  - type: textarea
+    id: findings
+    attributes:
+      label: Findings
+      description: For each material finding include statement, evidence, confidence, and implications.
+    validations:
+      required: false
+  - type: dropdown
+    id: decision
+    attributes:
+      label: Decision gate
+      options:
+        - READY_FOR_IMPLEMENTATION
+        - BLOCKED_PENDING_EVIDENCE
+        - REJECTED
+        - NO_IMPLEMENTATION_REQUIRED
+    validations:
+      required: true
+  - type: textarea
+    id: next_action
+    attributes:
+      label: Recommended next action / follow-on issues
+    validations:
+      required: false

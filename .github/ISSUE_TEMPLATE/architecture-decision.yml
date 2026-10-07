@@ -1,0 +1,91 @@
+# Managed by harkers/repo-standards at revision d5afae46. Use .repo-standards.yml overrides instead of editing this header away.
+name: Architecture Decision / ADR
+description: Record a significant technical decision and the evidence behind it
+title: "[ADR] "
+labels: []
+assignees: []
+body:
+  - type: dropdown
+    id: status
+    attributes:
+      label: Status
+      options:
+        - PROPOSED
+        - ACCEPTED
+        - REJECTED
+        - SUPERSEDED
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What decision is required and why now?
+    validations:
+      required: true
+  - type: textarea
+    id: decision
+    attributes:
+      label: Decision
+      description: State the decision precisely.
+    validations:
+      required: true
+  - type: textarea
+    id: drivers
+    attributes:
+      label: Decision drivers
+    validations:
+      required: true
+  - type: textarea
+    id: options
+    attributes:
+      label: Options considered
+      description: Include pros, cons, and trade-offs for each credible option.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Link benchmarks, code, issues, incidents, experiments, or documentation supporting the decision.
+    validations:
+      required: true
+  - type: textarea
+    id: consequences
+    attributes:
+      label: Consequences and trade-offs
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks
+    validations:
+      required: true
+  - type: textarea
+    id: contracts
+    attributes:
+      label: Affected contracts
+      value: |
+        Events:
+        Evidence:
+        Persistence:
+        API/UI:
+        Model/agent routing:
+        Security/privacy:
+    validations:
+      required: true
+  - type: textarea
+    id: related
+    attributes:
+      label: Related work / supersession
+      description: Link issues, PRs, prior ADRs, supersedes, or superseded-by references.
+    validations:
+      required: false
+  - type: textarea
+    id: review_trigger
+    attributes:
+      label: Review trigger
+      description: What future evidence or change should cause this decision to be revisited?
+    validations:
+      required: true

@@ -1,0 +1,101 @@
+# Managed by harkers/repo-standards at revision d5afae46. Use .repo-standards.yml overrides instead of editing this header away.
+name: Epic
+description: Define a large capability that must be decomposed before implementation
+title: "[Epic] "
+labels: []
+assignees: []
+body:
+  - type: input
+    id: parent_architecture
+    attributes:
+      label: Parent architecture
+      placeholder: "#1 or architecture reference"
+    validations:
+      required: true
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: What capability should exist when this epic is complete?
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: What should be observably true at epic completion?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: In scope
+      placeholder: "- capability"
+    validations:
+      required: true
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: Out of scope
+      placeholder: "- excluded work"
+    validations:
+      required: true
+  - type: textarea
+    id: architecture
+    attributes:
+      label: Architecture impact
+      value: |
+        Events:
+        Evidence:
+        Persistence:
+        API/UI:
+        Security/privacy:
+        Model/agent routing:
+    validations:
+      required: true
+  - type: textarea
+    id: phases
+    attributes:
+      label: Delivery phases
+      placeholder: "1. Phase one\n2. Phase two"
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+    validations:
+      required: true
+  - type: textarea
+    id: child_issues
+    attributes:
+      label: Child issues
+      placeholder: "- [ ] #123"
+    validations:
+      required: false
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks
+    validations:
+      required: true
+  - type: textarea
+    id: definition_done
+    attributes:
+      label: Definition of Done
+      placeholder: "- [ ] outcome"
+    validations:
+      required: true
+  - type: checkboxes
+    id: decomposition
+    attributes:
+      label: Delivery rule
+      options:
+        - label: This epic will be decomposed into bounded feature/task issues with specifications and plans before implementation.
+          required: true

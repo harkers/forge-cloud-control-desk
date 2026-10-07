@@ -1,0 +1,127 @@
+# Managed by harkers/repo-standards at revision d5afae46. Use .repo-standards.yml overrides instead of editing this header away.
+name: Bug / Incident
+description: Capture a defect, regression, failure, or automatically detected engineering incident
+title: "[Bug] "
+labels: []
+assignees: []
+body:
+  - type: input
+    id: detected_by
+    attributes:
+      label: Detected by
+      placeholder: user / agent / CI / WorkHub / harness
+    validations:
+      required: true
+  - type: input
+    id: component
+    attributes:
+      label: Project / component
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: branch, worktree, runtime, OS, model/runtime if relevant
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit SHA
+    validations:
+      required: false
+  - type: textarea
+    id: symptom
+    attributes:
+      label: Symptom
+      description: What failed or behaved unexpectedly?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      placeholder: Steps, command, input, or conditions.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Include relevant logs, stderr, stack traces, and affected files. Redact secrets.
+      render: shell
+    validations:
+      required: false
+  - type: dropdown
+    id: classification
+    attributes:
+      label: Classification
+      multiple: true
+      options:
+        - application
+        - test
+        - CI
+        - harness
+        - model
+        - tool
+        - Git/GitHub
+        - infrastructure
+        - configuration
+        - unknown
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Critical
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+  - type: dropdown
+    id: regression
+    attributes:
+      label: Regression status
+      options:
+        - Known regression
+        - New failure
+        - Unknown
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Link source, test, log, commit, issue, or PR evidence.
+    validations:
+      required: true
+  - type: textarea
+    id: root_cause
+    attributes:
+      label: Root cause
+      description: Populate when established; distinguish confirmed cause from hypothesis.
+    validations:
+      required: false
+  - type: textarea
+    id: resolution
+    attributes:
+      label: Resolution / regression protection
+      description: Describe the fix and regression test or monitoring protection when known.
+    validations:
+      required: false
