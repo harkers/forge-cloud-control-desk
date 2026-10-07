@@ -1,4 +1,4 @@
-<!-- Managed by harkers/repo-standards at revision 5371ef03. Use .repo-standards.yml overrides instead of editing this header away. -->
+<!-- Managed by harkers/repo-standards at revision d5afae46. Use .repo-standards.yml overrides instead of editing this header away. -->
 
 # Canonical Behavioural Policy
 
@@ -43,7 +43,8 @@ Rules:
 3. **Classify every claim.** Distinguish `VERIFIED`, `INFERRED`, `UNKNOWN` and `FAILED`.
 4. **Self-review before the turn ends.** Check your own work before emitting a final response.
 5. **Every material issue carries a recommended resolution.**
-6. **Every material defect is tracked in GitHub.** See *Mandatory defect tracking*.
+6. **Every material defect is tracked and prioritised.** See *Mandatory defect tracking* and
+   *Defect priority and fix-first policy*.
 7. **Issues use the repository's issue form.** See *Issue form selection*.
 8. **One recommendation, not a menu.** Prefer one evidence-backed recommendation over dumping
    options.
@@ -125,7 +126,8 @@ Before claiming `DONE`, an agent must be able to answer all of these from eviden
 - What failed?
 - What assumptions remain?
 - What issues remain?
-- Has every discovered material issue or bug been raised in GitHub?
+- What is the highest unresolved defect priority (`P0`, `P1`, `P2`, `P3` or `NONE`)?
+- Has every discovered material issue or bug been raised in GitHub, or recorded as fixed-in-turn with regression evidence?
 - Was the correct GitHub issue form used?
 - Does every remaining material issue have a resolution or an explicit next action?
 - Is the work committed, if a commit is expected?
@@ -146,6 +148,11 @@ REQUIRES_REMEDIATION work exists but a known defect must be fixed before complet
 and an honest `BLOCKED` are all successful behaviours of this policy. A false `DONE` is the only
 failure.
 
+An unresolved `P0` MUST always prevent `DONE`. An unresolved `P1` MUST prevent `DONE` unless an
+explicit, repository-authorised waiver exists and is represented in evidence. A waiver MUST NOT be
+inferred from silence, time pressure or an unavailable reviewer. See also the "Blocking defects"
+section below for how a defect is classified as blocking.
+
 The task state machine (`docs/process/task-state-machine.md`) remains authoritative for state
 transitions; the completion packet (`docs/process/completion-packet.md`) remains the only
 machine-readable delivery record.
@@ -153,7 +160,8 @@ machine-readable delivery record.
 ## Mandatory defect tracking
 
 **Any material issue discovered during work MUST be represented by a durable GitHub issue**, unless
-an existing open issue already tracks the same root cause.
+an existing open issue already tracks the same root cause, or the defect is fully fixed and
+regression-verified during the same bounded work before turn completion.
 
 Material means, at minimum: bugs, regressions, failing tests, broken configuration, security
 vulnerabilities, dependency vulnerabilities, CI failures, build failures, data-loss risks, incorrect
@@ -162,20 +170,69 @@ reliability problems, unresolved integration failures, and material technical de
 implementing something else.
 
 Terminal output, chat history, agent memory, TODO comments, handover notes and review comments are
-**not** the record. They are evidence *about* the record.
+**not** the durable record. They are evidence *about* the record.
+
+A fixed-in-turn defect MUST NOT be erased. It MUST remain in the completion packet as
+`FOUND_AND_FIXED` or `VERIFIED_FIXED` with fix evidence and regression evidence. This prevents noisy
+redundant issues without losing the fact that the defect existed.
+
+## Defect priority and fix-first policy
+
+every material discovered defect MUST receive exactly one priority and one state before a
+substantive agent turn ends.
+
+Priority MUST express **remediation urgency from impact and risk**. It MUST NOT be estimated fix
+effort, reviewer confidence, action queue order or cosmetic severity.
+
+| Priority | Meaning | Required behaviour |
+| --- | --- | --- |
+| `P0` — Critical | False-green safety/quality/release gate; security/privacy exposure; data loss/corruption; invalid evidence represented as verified; systemic validation failure that makes other evidence untrustworthy. | Stop unrelated/discretionary work. Fix or contain immediately. Block `PR_READY` and `DONE`. |
+| `P1` — High | Core functionality incorrect; acceptance criterion invalid; major regression; required review/testing/delivery gate unavailable; material correctness or reliability failure. | Fix before `PR_READY`/`DONE` unless an explicit repository-authorised waiver exists. |
+| `P2` — Medium | Genuine defect, edge case, test weakness or maintainability problem that does not invalidate the current delivery. | Track and normally remediate before unrelated discretionary feature work. May be non-blocking where policy permits. |
+| `P3` — Low | Cleanup, minor documentation/cosmetic issue, optimisation or low-risk technical debt. | Track/backlog. Does not block delivery by default. |
+
+A demonstrated false-green test, evidence verifier or release gate MUST be classified `P0` by
+default. Downgrading it MUST require evidence that the false-green condition cannot affect a
+completion/release decision.
+
+Defect state is exactly one of:
+
+```text
+OPEN | FIX_IN_PROGRESS | FOUND_AND_FIXED | VERIFIED_FIXED | DEFERRED | BLOCKED
+```
+
+The canonical fix-first order MUST be `P0` → `P1` → `P2` → requested feature work → `P3`; the
+sequence itself carries the normative force: reorder it and fix-first order is violated.
+
+Rules:
+
+1. `P0` MUST always pre-empt unrelated work. The next bounded action MUST address the highest
+   unresolved `P0` or the blocker preventing its remediation.
+2. `P1` pre-empts ordinary feature continuation and must be resolved before `PR_READY`, unless an
+   explicit authorised waiver is represented in evidence. A waiver MUST NOT be inferred from silence,
+   time pressure or an unavailable reviewer.
+3. `P2` is durable tracked work and should be scheduled before unrelated discretionary work where
+   practical; it does not automatically block the active PR.
+4. `P3` is durable backlog work and does not pre-empt required delivery gates.
+5. `FOUND_AND_FIXED` and `VERIFIED_FIXED` do not count as unresolved, but their evidence remains in
+   the completion packet.
+6. Where several defects share a priority, choose the one that most directly restores validity of
+   the active completion claim or required gate. Do not return a menu.
+7. Action queue ordering is a separate mechanism. A governor action with numeric `priority: 0`
+   means "primary next action" and MUST NOT be interpreted as defect `P0`.
 
 ### Duplicate prevention
 
 Before opening a new issue:
 
-1. **Raise it first, then investigate.** File the issue with the evidence in hand and continue
-   working. Do not batch defects to end of turn and do not wait for confirmation.
+1. **Capture it immediately, then investigate.** Record the finding and its priority as soon as it is
+   established; do not batch defects to end of turn or wait for confirmation.
 2. **Search before opening.** Check existing open *and* recently closed issues for the same root
    cause.
 3. **Reuse rather than duplicate.** If the root cause is already tracked, comment the new evidence on
    the existing issue and reference it. If the finding materially expands scope or evidence, add that
    evidence to the existing issue.
-3. **Do not suppress a finding** because something vaguely similar exists. Match on root cause and
+4. **Do not suppress a finding** because something vaguely similar exists. Match on root cause and
    actionable scope, not on wording.
 
 ### Issue form selection
@@ -198,6 +255,9 @@ Every agent-raised issue carries, where applicable:
 Title:                  concise description of the defect
 Classification:         Bug / Security / Performance / Architecture / CI / Technical Debt /
                         Investigation / Documentation Defect / Dependency-Supply-Chain / other
+Priority:               P0 / P1 / P2 / P3
+Defect state:           OPEN / FIX_IN_PROGRESS / DEFERRED / BLOCKED
+Priority label:         priority:P0 / priority:P1 / priority:P2 / priority:P3, when available
 Observed behaviour:     what happened
 Expected behaviour:     what should happen
 Evidence:               logs, test failures, code references, reproduction output, config state
@@ -208,6 +268,10 @@ Recommended resolution: the preferred remediation
 Acceptance criteria:    what must be true before the issue can close
 Related work:           PR, commit, issue, work item, test, incident, dependency
 ```
+
+If the canonical priority label cannot be applied because the repository has not provisioned it,
+the structured `Priority:` field remains mandatory and the missing label is reported explicitly.
+Do not silently drop priority metadata.
 
 A finding is not actionable if its title is "Something appears wrong with config". It is actionable
 if its title is "Runtime config loader ignores the repository-level model routing override when the
@@ -220,49 +284,56 @@ Every material finding is reported in this structure:
 
 ```text
 Issue:          one line stating the defect
+Priority:       P0 / P1 / P2 / P3
+State:          OPEN / FIX_IN_PROGRESS / FOUND_AND_FIXED / VERIFIED_FIXED / DEFERRED / BLOCKED
 Evidence:       the verifiable observation
 Impact:         who/what is affected and how badly
 Resolution:     the recommended remediation
-GitHub issue:   the new issue | the existing issue that already tracks it |
+GitHub issue:   the new issue | the existing issue that already tracks it | FIXED_IN_TURN |
                 NOT RAISED — BLOCKING REASON: <reason>
 Next action:    who does what next
 ```
 
-`GitHub issue:` may never be silently omitted. If an issue genuinely cannot be raised, the reason is
-stated explicitly rather than the field being dropped.
+`GitHub issue:` may never be silently omitted. `FIXED_IN_TURN` is valid only when the packet contains
+fix and regression evidence. If an unresolved issue genuinely cannot be raised, the reason is stated
+explicitly rather than the field being dropped.
 
 ## Discovery during unrelated work
 
 When a defect is found while doing something else:
 
 1. Do **not** silently expand the current task's scope.
-2. Determine whether it blocks the current task.
-3. Raise the issue using the appropriate form.
-4. Record its relationship to the current task or PR.
-5. Fix it now only if it is necessary to complete the current task safely, or is sufficiently small
-   and clearly in scope.
-6. Otherwise leave it as separately tracked work with acceptance criteria.
+2. Assign `P0`–`P3` from impact/risk and establish its state.
+3. Determine whether it blocks the current task or completion claim.
+4. Raise or update the issue using the appropriate form when it will remain unresolved.
+5. Record its relationship to the current task or PR.
+6. Fix it now when fix-first ordering requires it, when it is necessary to complete the current task
+   safely, or when it is sufficiently small and clearly in scope.
+7. Otherwise leave it as separately tracked work with acceptance criteria.
 
 ### Blocking defects
 
 A defect that invalidates the current implementation or completion claim:
 
-- raise the issue;
+- assign and record its priority;
+- raise/update the issue if it remains unresolved;
 - set the work to `BLOCKED`, `FAILED` or `REQUIRES_REMEDIATION` as appropriate;
 - do **not** claim `DONE`;
 - recommend the corrective action;
 - fix and re-verify where in scope.
 
-A known blocking defect and a `VERIFIED DONE` state cannot coexist.
+An unresolved `P0` MUST always be blocking. An unresolved `P1` MUST be blocking unless an explicit
+authorised waiver exists under repository policy. A known blocking defect and a `VERIFIED DONE` state
+MUST NOT coexist. See also the mandatory completion gate above for what a waiver must evidence.
 
 ### Non-blocking defects
 
 A defect that does not prevent delivery:
 
-- raise the issue;
+- assign and record its priority;
+- raise/update the issue if it remains unresolved;
 - link it to the current PR/work item;
 - state why it is non-blocking;
-- set a recommended priority;
 - continue delivering if that is safe and correct.
 
 Do not hide a non-blocking defect to make the current PR look clean.
@@ -272,10 +343,11 @@ Do not hide a non-blocking defect to make the current PR look clean.
 When several actions are possible:
 
 1. Gather enough evidence to distinguish them.
-2. Select the strongest option.
-3. Recommend it.
-4. Explain the deciding evidence briefly.
-5. Proceed, where you have the authority.
+2. Apply fix-first priority before ordinary delivery sequencing.
+3. Select the strongest option.
+4. Recommend it.
+5. Explain the deciding evidence briefly.
+6. Proceed, where you have the authority.
 
 Do not push ordinary decisions back to the user. Ask only when genuine user preference, authority,
 credentials, external information, or a consequential product/business decision is required. This is
@@ -287,17 +359,19 @@ the same convergence rule as the handoff contract
 Any agent-to-agent handover provides:
 
 ```text
-Objective:                 the bounded objective
-Completed:                 what was actually done
-Files/components changed:  paths
-Evidence:                  refs and evidence classes
-Checks performed:           commands, tests, reviews
-Results:                   what passed and what failed
-GitHub issues raised:       new issues
-Existing issues referenced: reused issues
-Remaining issues:           unresolved findings
-Assumptions/unknowns:       INFERRED and UNKNOWN items
-Recommended next action:    exactly one
+Objective:                    the bounded objective
+Completed:                    what was actually done
+Files/components changed:     paths
+Evidence:                     refs and evidence classes
+Checks performed:             commands, tests, reviews
+Results:                      what passed and what failed
+Defects and priorities:       P0–P3, state, evidence and tracking
+Highest unresolved priority:  P0 / P1 / P2 / P3 / NONE
+GitHub issues raised:          new issues
+Existing issues referenced:   reused issues
+Remaining issues:             unresolved findings
+Assumptions/unknowns:          INFERRED and UNKNOWN items
+Recommended next action:       exactly one
 ```
 
 The receiving agent must not need to rediscover anything the sending agent established. The
@@ -309,12 +383,12 @@ contract; both must be satisfied.
 Before emitting a final response, every substantive agent evaluates:
 
 1. Is there an identified issue without a resolution?
-2. Is there an identified bug or defect without a GitHub issue?
+2. Is there an identified bug or defect without a priority, state, and durable GitHub issue when unresolved?
 3. Was the appropriate repository issue form used?
-4. Is there an unresolved failure without a next action?
+4. Is there an unresolved failure without a next action, or a higher-priority defect being bypassed?
 5. Is there an unverified completion claim?
 6. Has implementation been produced but not delivered?
-7. Should a discovered defect become a tracked issue or an explicit TODO?
+7. Should a discovered defect become tracked work, or is it fixed-in-turn with regression evidence?
 8. Am I asking the user to choose something I can decide from evidence?
 9. Is there another concrete action available now that moves the project forward?
 10. Are all issues discovered during this work linked to the relevant PR/work item where appropriate?
@@ -327,7 +401,8 @@ Engineering implementation work intended for delivery progresses through:
 
 ```text
 observe → verify → diagnose → decide → implement → self-review → test → inspect diff
-  → identify defects → raise GitHub issues using appropriate forms
+  → identify defects → classify P0/P1/P2/P3 → apply fix-first ordering
+  → raise GitHub issues using appropriate forms for unresolved findings
   → independent review where required → remediate blocking findings
   → commit → push → create/update PR → link related issues → check CI → DONE
 ```
@@ -338,10 +413,10 @@ is not completion.
 
 ## Compliance validation
 
-This policy is not enforced by prompt wording alone. `harkers/repo-standards` CI
-(`.github/workflows/validate.yml`) validates that:
+This policy is not enforced by prompt wording alone. `harkers/repo-standards` CI validates that:
 
 - the canonical policy file exists and contains every required section and anchor;
+- defect priority taxonomy, fix-first ordering and false-green `P0` semantics remain present;
 - every canonical role contract references the policy and strengthens rather than weakens it
   (no weakening language, no contradictory completion rules);
 - the policy is distributed to consumer repositories through `sync/managed-files.yml`;
@@ -355,7 +430,7 @@ that violates this policy is itself a defect: raise it under *Mandatory defect t
 
 1. Change it here, in the canonical source. Never patch a consumer copy.
 2. If the change alters a required section, update `fixtures/policy/` and the validation steps in
-   the same commit — CI fails otherwise.
+   the same PR; CI fails if priority semantics and fixtures drift apart.
 3. If the change weakens any of the nineteen rules or the completion gate, treat it as an
    architecture/security-boundary change: it requires an ADR and explicit human approval, not a
    routine sync.

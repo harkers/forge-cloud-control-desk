@@ -1,0 +1,143 @@
+# Managed by harkers/repo-standards at revision d5afae46. Use .repo-standards.yml overrides instead of editing this header away.
+name: Security Finding
+description: Record a security, abuse, permission, or trust-boundary finding with evidence and mitigation
+title: "[Security] "
+labels: []
+assignees: []
+body:
+  - type: input
+    id: finding_id
+    attributes:
+      label: Finding ID
+      placeholder: SEC-001
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Reviewer / source
+      placeholder: titus-cybersecurity-35b / human / external review
+    validations:
+      required: true
+  - type: input
+    id: related
+    attributes:
+      label: Triggering PR / issue / commit
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Critical
+        - High
+        - Medium
+        - Low
+        - Informational
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      multiple: true
+      options:
+        - authentication
+        - authorisation
+        - secrets/credentials
+        - filesystem/path handling
+        - command execution
+        - network exposure
+        - dependency/supply chain
+        - logging/data leakage
+        - prompt/tool abuse
+        - policy/safety
+        - other
+    validations:
+      required: true
+  - type: input
+    id: component
+    attributes:
+      label: Affected component
+    validations:
+      required: true
+  - type: textarea
+    id: surface
+    attributes:
+      label: Attack / failure surface
+      description: Describe the exposed surface or trust boundary.
+    validations:
+      required: true
+  - type: textarea
+    id: threat
+    attributes:
+      label: Threat / finding
+      description: State the security claim precisely.
+    validations:
+      required: true
+  - type: textarea
+    id: preconditions
+    attributes:
+      label: Preconditions
+      description: What must be true for the issue to occur or be exploitable?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Include file/line, test/log, configuration, and safe reproduction where appropriate.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: Describe credible technical impact without overstating unsupported scenarios.
+    validations:
+      required: true
+  - type: dropdown
+    id: exploitability
+    attributes:
+      label: Exploitability / likelihood
+      options:
+        - High
+        - Medium
+        - Low
+        - Unknown
+    validations:
+      required: true
+  - type: textarea
+    id: mitigation
+    attributes:
+      label: Recommended mitigation
+    validations:
+      required: true
+  - type: dropdown
+    id: verification
+    attributes:
+      label: Verification status
+      options:
+        - PENDING
+        - SUPPORTED
+        - REFUTED
+        - UNCLEAR
+    validations:
+      required: true
+  - type: checkboxes
+    id: specialist_gates
+    attributes:
+      label: Specialist gates
+      options:
+        - label: Security/regression test considered.
+          required: true
+        - label: Policy/safety review considered where relevant.
+          required: true
+  - type: textarea
+    id: resolution
+    attributes:
+      label: Resolution / residual risk
+      description: Link fix commit/PR and document residual risk when resolved.
+    validations:
+      required: false

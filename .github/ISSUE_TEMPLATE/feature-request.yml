@@ -1,0 +1,71 @@
+# Managed by harkers/repo-standards at revision d5afae46. Use .repo-standards.yml overrides instead of editing this header away.
+name: Feature Request
+description: Define a new capability before implementation
+title: "[Feature] "
+labels: []
+assignees: []
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What operational or engineering problem does this solve?
+      placeholder: Describe the current limitation, pain point, or missing capability.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: What should be observably true when this is complete?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence / context
+      description: Link relevant issues, files, incidents, architecture, benchmarks, or prior decisions.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: In scope
+      placeholder: "- capability or behaviour"
+    validations:
+      required: true
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: Non-goals
+      placeholder: "- explicitly excluded behaviour"
+    validations:
+      required: true
+  - type: textarea
+    id: architecture
+    attributes:
+      label: Architecture considerations
+      description: Cover events, evidence, persistence, API/UI, security/privacy, and model/agent routing where relevant.
+      value: |
+        Events:
+        Evidence:
+        Persistence:
+        API/UI:
+        Security/privacy:
+        Model/agent routing:
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: "- [ ] measurable criterion"
+    validations:
+      required: true
+  - type: checkboxes
+    id: delivery
+    attributes:
+      label: Delivery requirement
+      options:
+        - label: I understand broad features must be decomposed into a specification, implementation plan, and bounded child tasks before coding.
+          required: true

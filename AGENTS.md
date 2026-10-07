@@ -1,4 +1,4 @@
-<!-- Managed by harkers/repo-standards at revision 5371ef03. Use .repo-standards.yml overrides instead of editing this header away. -->
+<!-- Managed by harkers/repo-standards at revision d5afae46. Use .repo-standards.yml overrides instead of editing this header away. -->
 
 # Canonical Agent Operating Contract
 
@@ -40,7 +40,10 @@ Binding obligations, all defined in full by that document:
 - Do not implement directly from an architecture epic.
 - Every implementation change must belong to a bounded issue.
 - Every implementation issue must have an approved specification and implementation plan before coding begins.
-- Use one dedicated branch/worktree per implementation issue unless the repository explicitly documents a safer alternative.
+- Planning and decomposition follow `docs/process/planning-decomposition.md`: broad plans are split
+  automatically into dependency-safe bounded execution units, and routine split decisions are not
+  pushed back to the user.
+- Every mutating implementation issue MUST use exactly one dedicated, control-plane-assigned and verified branch/worktree before entering `READY` or `IN_PROGRESS`. The live/default checkout is not a valid mutation target. Agents consume the assigned worktree and MUST NOT create, switch, reuse or substitute another worktree. Read-only discovery/planning/review may run without a worktree when the control plane has verified and recorded the task's read-only scope.
 - Workers may make claims; evidence verifiers decide whether material claims are supported by actual source evidence.
 - A worker must not mark its own task complete.
 - Reviewer findings are claims and may be `SUPPORTED`, `REFUTED` or `UNCLEAR` after verification.
@@ -59,7 +62,7 @@ Binding obligations, all defined in full by that document:
 
 ## Required delivery flow
 
-`issue → specification → implementation plan → worktree → scout → builder → task validation → atomic commit → draft PR → test engineer → fast reviewer → conditional cloud/specialist review → evidence verifier → reporter → PR_READY`
+`feature/issue → specification → implementation plan or plan-set → bounded implementation issue → worktree → scout → builder → task validation → atomic commit → draft PR → test engineer → fast reviewer → conditional cloud/specialist review → evidence verifier → reporter → PR_READY`
 
 ## Automatic delivery behaviour
 
@@ -82,8 +85,8 @@ Tasks must fit comfortably within one local-model working session. If a task req
 Default routes:
 
 - `REVIEW_FAST` → Swift Qwen3.8 OQ6/MTP
-- `REVIEW_CLOUD` → GLM Cloud Engineer (`glm-5:cloud`)
-- `REVIEW_DISSENT` → Gemma 4 31B
+- `REVIEW_CLOUD` → gpt-oss 120B cloud seat (`cloud-gpt-oss`)
+- `REVIEW_DISSENT` → Gemma 4 31B (`gemma4-31b-31g`, local)
 - `EVIDENCE_VERIFICATION` → Granite 4.2 8B
 - `SECURITY_REVIEW` → Titus Cybersecurity 35B
 - `SAFETY_POLICY_REVIEW` → Granite Guardian 4.1 8B
@@ -102,3 +105,7 @@ A task may enter `DONE` only when:
 6. supported blocking review findings are resolved or explicitly accepted under repository policy;
 7. the completion packet has been produced;
 8. reporter handoff has completed where configured.
+
+## Build Assurance
+
+Agents may make claims; only a passing Verification Evidence Packet bound to the commit permits `PR_READY`/`DONE`.

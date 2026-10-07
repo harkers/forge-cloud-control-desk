@@ -1,0 +1,119 @@
+# Managed by harkers/repo-standards at revision d5afae46. Use .repo-standards.yml overrides instead of editing this header away.
+name: Model Evaluation
+description: Benchmark a model build against a defined capability and routing baseline
+title: "[Model Eval] "
+labels: []
+assignees: []
+body:
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      placeholder: swift-qwen38-27b-oq6-mtp
+    validations:
+      required: true
+  - type: input
+    id: build
+    attributes:
+      label: Build / quant
+    validations:
+      required: true
+  - type: input
+    id: runtime
+    attributes:
+      label: Runtime / endpoint / alias
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: Hardware
+    validations:
+      required: true
+  - type: input
+    id: capability
+    attributes:
+      label: Capability under test
+      placeholder: REVIEW_FAST / TESTING_FAST / COORDINATION_FAST / COMPLEX_CODE / TOOL_OPS
+    validations:
+      required: true
+  - type: textarea
+    id: baselines
+    attributes:
+      label: Baseline model(s)
+    validations:
+      required: true
+  - type: textarea
+    id: objective
+    attributes:
+      label: Evaluation objective
+      description: What routing decision should this evaluation inform?
+    validations:
+      required: true
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Dataset / tasks
+      description: Describe representative tasks, fixtures, or benchmark cases.
+    validations:
+      required: true
+  - type: textarea
+    id: provenance
+    attributes:
+      label: Prompt / harness provenance
+      value: |
+        Prompt version:
+        Harness version/commit:
+        Runtime config:
+    validations:
+      required: true
+  - type: textarea
+    id: metrics
+    attributes:
+      label: Metrics
+      description: Include relevant measures such as correctness, latency, tokens/sec, memory, tool success, schema compliance, hallucination/error rate, review precision, or cost.
+    validations:
+      required: true
+  - type: textarea
+    id: results
+    attributes:
+      label: Results
+      description: Record candidate vs baseline measurements with evidence references.
+    validations:
+      required: true
+  - type: textarea
+    id: failures
+    attributes:
+      label: Failure analysis / qualitative findings
+    validations:
+      required: false
+  - type: dropdown
+    id: recommendation
+    attributes:
+      label: Routing recommendation
+      options:
+        - PROMOTE
+        - KEEP_EXPERIMENTAL
+        - KEEP_CURRENT_ROUTE
+        - DEMOTE
+        - REJECT
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_mapping
+    attributes:
+      label: Proposed capability mapping
+      render: yaml
+      placeholder: |
+        capability: REVIEW_FAST
+        preferred_model: swift-qwen38-27b-oq6-mtp
+        fallback: qwen38-27b
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence / follow-on
+      description: Link benchmark output, logs, commits/config, and follow-on work.
+    validations:
+      required: true

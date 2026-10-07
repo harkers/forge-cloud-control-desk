@@ -1,0 +1,90 @@
+# Managed by harkers/repo-standards at revision d5afae46. Use .repo-standards.yml overrides instead of editing this header away.
+name: Implementation Task
+description: Bounded implementation work derived from an approved spec and plan
+title: "[Task] "
+labels: []
+assignees: []
+body:
+  - type: input
+    id: parent
+    attributes:
+      label: Parent epic / feature
+      placeholder: "#2"
+    validations:
+      required: true
+  - type: input
+    id: spec
+    attributes:
+      label: Specification
+      placeholder: docs/specs/ISSUE-...md
+    validations:
+      required: true
+  - type: input
+    id: plan
+    attributes:
+      label: Implementation plan
+      placeholder: docs/plans/ISSUE-...md
+    validations:
+      required: true
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: Describe one bounded implementation outcome.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      placeholder: "- change"
+    validations:
+      required: true
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: Non-goals
+      placeholder: "- explicitly excluded work"
+    validations:
+      required: true
+  - type: textarea
+    id: surface
+    attributes:
+      label: Likely change surface
+      description: List expected files, modules, schemas, interfaces, or commands.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: "- [ ] measurable criterion"
+    validations:
+      required: true
+  - type: checkboxes
+    id: gates
+    attributes:
+      label: Required gates
+      options:
+        - label: Independent testing is defined.
+          required: true
+        - label: Independent review is required.
+          required: true
+        - label: Evidence verification is required.
+          required: true
+        - label: Completion packet will follow the repository delivery standard.
+          required: true
+  - type: input
+    id: branch
+    attributes:
+      label: Branch
+      placeholder: feature/<issue>-<slug>
+    validations:
+      required: true
+  - type: input
+    id: worktree
+    attributes:
+      label: Worktree
+      placeholder: ../<repo>-wt/issue-<issue>-<slug>
+    validations:
+      required: true

@@ -1,4 +1,4 @@
-<!-- Managed by harkers/repo-standards at revision 5371ef03. Use .repo-standards.yml overrides instead of editing this header away. -->
+<!-- Managed by harkers/repo-standards at revision d5afae46. Use .repo-standards.yml overrides instead of editing this header away. -->
 
 # builder-fast
 
@@ -79,13 +79,22 @@ general skill or workflow directive inherited from a plugin or harness.
 - report exact files changed, commands run, TDD evidence, results and claims requiring independent
   verification.
 
+## Build Assurance obligations
+
+- resolve the assurance profile before claiming completion;
+- call `just verify` (or the repository's canonical entrypoint);
+- never mark a task complete while any REQUIRED control is `FAIL` or `BLOCKED`;
+- preserve `evidence.json`;
+- run `git diff --check`;
+- record waivers explicitly.
+
 ## Turn handoff
 
 Every turn ends with this block. It is how the next agent continues without replaying your
 conversation. The full convergence rules are in `docs/process/agent-handoff.md`.
 
 ```yaml
-status: SUCCESS        # SUCCESS | PARTIAL | BLOCKED | FAILED
+status: PARTIAL        # SUCCESS | PARTIAL | BLOCKED | FAILED
 summary: >
   What was actually achieved this turn.
 evidence:
@@ -93,9 +102,17 @@ evidence:
 remaining:
   - Work still required for the current bounded objective.
 problems:
-  - Any error, failed test, defect or unresolved finding.
+  - id: DEFECT-001
+    priority: P0       # P0 | P1 | P2 | P3
+    state: OPEN        # OPEN | FIX_IN_PROGRESS | FOUND_AND_FIXED | VERIFIED_FIXED | DEFERRED | BLOCKED
+    summary: >
+      A deliberately false claim can pass the verification gate.
+    evidence:
+      - { ref: tests/test_spec_claims.py::test_false_claim_fails, type: test }
+    github_issue: "#123"   # issue ref | FIXED_IN_TURN | NOT_RAISED — BLOCKING REASON: <reason>
+highest_unresolved_priority: P0   # P0 | P1 | P2 | P3 | NONE
 proposed_next:
-  capability: TESTING_FAST
+  capability: CODE_FAST
   action: >
     One bounded action.
   reason: >

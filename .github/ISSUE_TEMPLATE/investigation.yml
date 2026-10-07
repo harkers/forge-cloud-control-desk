@@ -1,0 +1,62 @@
+# Managed by harkers/repo-standards at revision d5afae46. Use .repo-standards.yml overrides instead of editing this header away.
+name: Investigation
+description: Evidence-first investigation before implementation or architecture change
+title: "[Investigation] "
+labels: []
+assignees: []
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What must this investigation determine?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it matters
+      description: What decision or implementation depends on the answer?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence to collect
+      placeholder: "- source / test / benchmark"
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints
+      value: |
+        - No implementation unless explicitly authorised by a follow-on issue.
+        - Record source references for every material finding.
+        - Distinguish fact, inference, hypothesis and experiment result.
+    validations:
+      required: true
+  - type: textarea
+    id: findings
+    attributes:
+      label: Findings
+      description: For each finding include statement, classification, evidence/source, confidence, implications, and unresolved questions.
+    validations:
+      required: false
+  - type: dropdown
+    id: exit_gate
+    attributes:
+      label: Exit gate
+      options:
+        - READY_FOR_IMPLEMENTATION
+        - BLOCKED_PENDING_EVIDENCE
+        - NO_IMPLEMENTATION_REQUIRED
+    validations:
+      required: true
+  - type: textarea
+    id: follow_on
+    attributes:
+      label: Follow-on work
+      description: Link resulting feature/task issues.
+    validations:
+      required: false

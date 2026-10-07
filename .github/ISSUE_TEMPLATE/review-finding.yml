@@ -1,0 +1,130 @@
+# Managed by harkers/repo-standards at revision d5afae46. Use .repo-standards.yml overrides instead of editing this header away.
+name: Review Finding
+description: Record an independently verifiable PR or code review finding as a claim
+title: "[Review] "
+labels: []
+assignees: []
+body:
+  - type: input
+    id: finding_id
+    attributes:
+      label: Finding ID
+      placeholder: REV-001
+    validations:
+      required: true
+  - type: input
+    id: reviewer
+    attributes:
+      label: Reviewer / model
+      placeholder: swift-qwen38-27b-oq6-mtp
+    validations:
+      required: true
+  - type: dropdown
+    id: review_stage
+    attributes:
+      label: Review stage
+      options:
+        - local
+        - cloud
+        - specialist
+        - human
+    validations:
+      required: true
+  - type: input
+    id: pr
+    attributes:
+      label: PR / commit reviewed
+      placeholder: "#123 / commit SHA"
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Critical
+        - High
+        - Medium
+        - Low
+        - Informational
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - correctness
+        - architecture
+        - maintainability
+        - testing
+        - security
+        - performance
+        - scope
+        - documentation
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: claim
+    attributes:
+      label: Claim
+      description: State the finding as a falsifiable claim.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Include file/line, test/log, and spec/plan references.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: What can fail or degrade if the claim is correct?
+    validations:
+      required: true
+  - type: textarea
+    id: recommendation
+    attributes:
+      label: Recommended action
+    validations:
+      required: true
+  - type: dropdown
+    id: verification
+    attributes:
+      label: Verification status
+      options:
+        - PENDING
+        - SUPPORTED
+        - REFUTED
+        - UNCLEAR
+    validations:
+      required: true
+  - type: textarea
+    id: verifier_notes
+    attributes:
+      label: Verifier / evidence checked
+    validations:
+      required: false
+  - type: dropdown
+    id: disposition
+    attributes:
+      label: Disposition
+      options:
+        - Fix required
+        - Accepted risk
+        - No action - refuted
+        - Escalate to jury / senior review
+        - Pending
+    validations:
+      required: true
+  - type: input
+    id: related_fix
+    attributes:
+      label: Related fix
+      placeholder: commit SHA / PR
+    validations:
+      required: false

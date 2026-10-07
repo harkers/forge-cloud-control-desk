@@ -1,0 +1,27 @@
+#!/bin/sh
+# Managed by harkers/repo-standards at revision d5afae46. Use .repo-standards.yml overrides instead of editing this header away.
+# Pre-commit guard: refuse a commit carrying staged content from a protected
+# branch's checkout. Enforces the isolation rule in docs/process/worktrees.md.
+#
+# Install once per clone:
+#   git config core.hooksPath .githooks
+#
+# Deliberate repository maintenance opts out explicitly:
+#   REPO_STANDARDS_ALLOW_PROTECTED_COMMIT=1 git commit ...
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel)
+guard="$repo_root/tools/guard_protected_commit.py"
+
+if [ ! -f "$guard" ]; then
+    echo "pre-commit: $guard not found; skipping protected-branch guard" >&2
+    exit 0
+fi
+
+if command -v python3 >/dev/null 2>&1; then
+    py=python3
+else
+    py=python
+fi
+
+exec "$py" "$guard" --root "$repo_root"
