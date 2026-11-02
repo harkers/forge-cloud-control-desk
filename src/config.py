@@ -1,5 +1,4 @@
 # Configuration module
-import os
 from pathlib import Path
 
 # Load .env file from project root

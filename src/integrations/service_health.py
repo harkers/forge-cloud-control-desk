@@ -6,13 +6,11 @@ Monitors Google Cloud Service Health for incidents affecting Compute Engine oper
 """
 
 import os
-import json
-from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
+from datetime import datetime
+from typing import Any, Dict, List
 
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-
 
 # Configuration from environment
 PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "orderededge-groupware")
@@ -173,19 +171,19 @@ def check_service_health(evidence_folder: str = None) -> Dict[str, Any]:
         evidence_file = evidence_path / f"health_check_{timestamp}.md"
         
         with open(evidence_file, 'w') as f:
-            f.write(f"# Service Health Check\n\n")
+            f.write("# Service Health Check\n\n")
             f.write(f"**Timestamp:** {summary['timestamp']}\n")
             f.write(f"**Region:** {summary['region']}\n")
             f.write(f"**Overall Status:** {summary['status']}\n\n")
-            f.write(f"## Summary\n\n")
-            f.write(f"| Metric | Value |\n")
-            f.write(f"|--------|-------|\n")
+            f.write("## Summary\n\n")
+            f.write("| Metric | Value |\n")
+            f.write("|--------|-------|\n")
             f.write(f"| Active Incidents | {summary['active_incidents']} |\n")
             f.write(f"| Resolved (7 days) | {summary['resolved_last_7_days']} |\n")
             f.write(f"| Total Events | {summary['total_events']} |\n\n")
             
             if summary['events']:
-                f.write(f"## Recent Events\n\n")
+                f.write("## Recent Events\n\n")
                 for event in summary['events']:
                     f.write(f"### {event.get('title', 'Untitled Event')}\n\n")
                     f.write(f"- **Status:** {event.get('status')}\n")

@@ -7,24 +7,24 @@ Usage:
     python -m main validate
 """
 
-import sys
 import os
+import sys
 
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
-from src.core import (
+from src.core import (  # noqa: E402
     create_instance_workflow,
     delete_instance_workflow,
-    start_instance_workflow,
-    stop_instance_workflow,
-    restart_instance_workflow,
+    generate_daily_digest,
+    generate_weekly_governance_report,
     inspect_instance_workflow,
     list_instances_workflow,
-    generate_weekly_governance_report,
-    generate_daily_digest,
+    restart_instance_workflow,
+    start_instance_workflow,
+    stop_instance_workflow,
 )
-from src.integrations.service_health import check_service_health
+from src.integrations.service_health import check_service_health  # noqa: E402
 
 COMMANDS = {
     "create": ("create_instance_workflow", True),

@@ -14,13 +14,13 @@ Usage:
         ...
 """
 
-import time
 import functools
+import time
 import traceback
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Callable, Optional, Any, Dict
+from typing import Any, Callable, Dict, Optional
 
 
 class ErrorCategory(Enum):
@@ -71,7 +71,7 @@ class CircuitBreaker:
             result = func(*args, **kwargs)
             self._record_success()
             return result
-        except Exception as e:
+        except Exception:
             self._record_failure()
             raise
     
@@ -100,7 +100,6 @@ class CircuitBreaker:
 def classify_error(error: Exception) -> ErrorCategory:
     """Classify an exception for handling decisions."""
     error_str = str(error).lower()
-    error_type = type(error).__name__.lower()
     
     # Rate limiting
     if any(x in error_str for x in ["rate limit", "too many requests", "quota exceeded"]):

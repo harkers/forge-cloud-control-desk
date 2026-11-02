@@ -16,13 +16,12 @@ Usage:
     audit.show_failed_operations()
 """
 
-import json
 import re
+from collections import defaultdict
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from collections import defaultdict
-from typing import List, Dict, Any, Optional
-from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
