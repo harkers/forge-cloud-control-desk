@@ -13,22 +13,21 @@ Actions:
     roundtrip                                 — create → inspect → delete (cost-safe)
 """
 
-import sys
 import os
-import time
+import sys
 
 # Add project root to path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
-from src.core.start_instance import (
+from src.core.start_instance import (  # noqa: E402
     create_instance_workflow,
     delete_instance_workflow,
-    start_instance_workflow,
-    stop_instance_workflow,
-    restart_instance_workflow,
     inspect_instance_workflow,
     list_instances_workflow,
+    restart_instance_workflow,
+    start_instance_workflow,
+    stop_instance_workflow,
 )
 
 

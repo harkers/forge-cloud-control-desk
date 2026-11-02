@@ -13,15 +13,16 @@ Access: http://localhost:5001
 
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from flask import Flask, render_template, jsonify
-from integrations.service_health import check_service_health, ServiceHealthClient
+from flask import Flask, jsonify, render_template, request
+
 from core import list_instances_workflow
+from integrations.service_health import check_service_health
 
 # Configuration
 DASHBOARD_PORT = int(os.getenv('DASHBOARD_PORT', 5001))
@@ -83,7 +84,7 @@ def get_recent_evidence(limit=5):
         evidence_files.sort(key=lambda x: x['modified'], reverse=True)
         return evidence_files[:limit]
         
-    except Exception as e:
+    except Exception:
         return []
 
 
@@ -150,7 +151,7 @@ def health_check_page():
 
 
 if __name__ == '__main__':
-    print(f"🚀 GCCD Status Dashboard")
+    print("🚀 GCCD Status Dashboard")
     print(f"   Starting on port {DASHBOARD_PORT}...")
     print(f"   Access: http://localhost:{DASHBOARD_PORT}")
     print(f"   API: http://localhost:{DASHBOARD_PORT}/api/health")

@@ -13,10 +13,8 @@ Usage:
     python3 src/core/retention_manager.py [--dry-run]
 """
 
-import os
 import sys
-import shutil
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 project_root = Path(__file__).parent.parent.parent

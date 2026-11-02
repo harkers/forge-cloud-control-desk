@@ -6,8 +6,6 @@ This script sets up the initial project structure and validates environment read
 It can be run multiple times safely (idempotent).
 """
 
-import os
-import sys
 import json
 from pathlib import Path
 

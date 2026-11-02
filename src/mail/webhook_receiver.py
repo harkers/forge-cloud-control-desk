@@ -1,14 +1,14 @@
 """SendGrid Event Webhook receiver for GCCD Email Extension."""
 
-import json
 import hashlib
 import hmac
+import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
@@ -110,8 +110,8 @@ def health_check():
 
 if __name__ == "__main__":
     print("🚀 GCCD Mail Event Webhook Receiver")
-    print(f"   Webhook URL: http://localhost:5002/webhook/mail-events")
-    print(f"   Health Check: http://localhost:5002/webhook/health")
+    print("   Webhook URL: http://localhost:5002/webhook/mail-events")
+    print("   Health Check: http://localhost:5002/webhook/health")
     print(f"   Evidence Dir: {EVIDENCE_DIR}")
     print("")
     app.run(host="0.0.0.0", port=5002, debug=True)

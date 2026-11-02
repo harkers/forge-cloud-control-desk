@@ -20,17 +20,15 @@ Note: Gmail notifications skipped due to OAuth delegation requirements for servi
 Local notification files are written to the evidence folder instead.
 """
 
-import os
 import json
+import os
 import time
-import re
 from datetime import datetime
-from typing import Optional, Any, Dict, List
-from googleapiclient.discovery import Resource
+from typing import Optional
 
 # Google API clients
 from google.oauth2 import service_account
-from googleapiclient.discovery import build
+from googleapiclient.discovery import Resource, build
 from googleapiclient.errors import HttpError
 
 # Configuration
@@ -227,7 +225,7 @@ def poll_operation(
         except HttpError as e:
             # Check for quota-related errors
             if "rateLimitExceeded" in str(e) or "exceeded" in str(e):
-                print(f"Rate limit hit, backing off...")
+                print("Rate limit hit, backing off...")
                 backoff = min(backoff * 2, max_backoff)
             return {"success": False, "error": str(e)}
 
@@ -432,8 +430,8 @@ def send_gmail_notification(
     to: str = None,
 ) -> bool:
     """Send local notification (Gmail skipped due to OAuth delegation requirements)."""
-    import os
     import datetime
+    import os
 
     # Write notification to local log instead of sending email
     notification_folder = os.environ.get("DRIVE_EVIDENCE_FOLDER_ID", "/tmp/forge-ccd-evidence")
@@ -782,7 +780,7 @@ def inspect_instance_workflow(instance_name: str) -> dict:
     machine_type = instance.get("machineType", "").split("/")[-1]
     status = instance.get("status")
 
-    print(f"Instance details:")
+    print("Instance details:")
     print(f"  - Name: {instance_name}")
     print(f"  - ID: {instance_id}")
     print(f"  - Machine Type: {machine_type}")
@@ -900,7 +898,7 @@ def list_instances_workflow() -> dict:
     # Step 3: Send notification
     print("Step 3: Sending local notification...")
     send_local_notification(
-        f"[SUCCESS] Instance list retrieved",
+        "[SUCCESS] Instance list retrieved",
         f"Instance listing completed.\n\n"
         f"Project: {PROJECT_ID}\n"
         f"Zone: {ZONE}\n"
@@ -908,7 +906,7 @@ def list_instances_workflow() -> dict:
         f"Evidence: {filepath}",
     )
 
-    print(f"✅ Instance listing completed!")
+    print("✅ Instance listing completed!")
     return {"success": True, "instances": instances, "count": len(instances)}
 
 
@@ -947,7 +945,7 @@ def generate_weekly_governance_report() -> dict:
     for status, count in sorted(status_counts.items()):
         report_content += f"| {status} | {count} |\n"
 
-    report_content += f"""
+    report_content += """
 ## Instance Details
 
 """

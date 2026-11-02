@@ -1,11 +1,11 @@
 """GCCD Mail Extension — Delivery Dashboard."""
 
 import json
+from collections import Counter
 from datetime import datetime, timedelta
 from pathlib import Path
-from collections import Counter
 
-from flask import Flask, render_template_string, jsonify
+from flask import Flask, jsonify, render_template_string
 
 app = Flask(__name__)
 

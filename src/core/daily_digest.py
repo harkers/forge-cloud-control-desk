@@ -9,11 +9,11 @@ Follows the local-first evidence model: output goes to
 data/evidence/reports/daily_digest_YYYY-MM-DD.md.
 """
 
-import os
 import re
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
 from pathlib import Path
+from typing import Dict, List, Optional
+
 
 def _resolve_root() -> Path:
     """Return the GCCD project root."""
@@ -114,16 +114,13 @@ def generate_daily_digest(date: Optional[str] = None) -> dict:
         "",
         "## Summary",
         "",
-        f"| Instance | Actions | Last Action | Last Status |",
-        f"|----------|---------|-------------|--------------|",
+        "| Instance | Actions | Last Action | Last Status |",
+        "|----------|---------|-------------|--------------|",
     ]
 
     for inst in sorted(by_instance.keys()):
         info = by_instance[inst]
         action_count = len(info["actions"])
-        # Collapse repeated same-action into count
-        unique_actions = list(dict.fromkeys(a.get("action","?") for a in info["actions"]))
-        action_str = ", ".join(unique_actions) if action_count <= 3 else ", ".join(unique_actions[:2]) + f" (+{action_count - 2} more)"
         lines.append(f"| {inst} | {action_count} | {info['last_action']} | {info['last_status']} |")
 
     lines += ["", "## Action Details", ""]

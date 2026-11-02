@@ -7,19 +7,20 @@ MCP server exposing VM management capabilities via the Model Context Protocol.
 
 import os
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import asyncio
+import json
 
 from mcp.server import Server
 from mcp.types import (
     CallToolRequest,
     ListToolsRequest,
-    Tool,
     TextContent,
+    Tool,
 )
-import json
-import asyncio
 
 # Configuration
 PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "orderededge-groupware")

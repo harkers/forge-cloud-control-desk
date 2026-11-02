@@ -9,25 +9,25 @@ Simple internal dashboard for VM management with:
 - Settings panel
 """
 
-from flask import Flask, render_template, jsonify, request, redirect, url_for
-from datetime import datetime
 import os
-import json
 import sys
+from datetime import datetime
+
+from flask import Flask, jsonify, render_template
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.config import (
-    GCP_PROJECT_ID,
-    GCP_ZONE,
-    GCP_SERVICE_ACCOUNT_JSON,
-    SHEETS_SPREADSHEET_ID,
-    DRIVE_EVIDENCE_FOLDER_ID,
-    LOG_LEVEL,
-)
-
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+
+from src.config import (
+    DRIVE_EVIDENCE_FOLDER_ID,
+    GCP_PROJECT_ID,
+    GCP_SERVICE_ACCOUNT_JSON,
+    GCP_ZONE,
+    LOG_LEVEL,
+    SHEETS_SPREADSHEET_ID,
+)
 
 app = Flask(__name__)
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True

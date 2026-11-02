@@ -62,7 +62,7 @@ request = compute.instances().insert(
 
 response = request.execute()
 operation_id = response.get("name")
-print(f"Creating VM: forge-test-vm")
+print("Creating VM: forge-test-vm")
 print(f"Operation: {operation_id}")
 
 # Poll for completion
@@ -85,8 +85,8 @@ for attempt in range(max_attempts):
             if "error" in op_result:
                 print(f"❌ Creation failed: {op_result['error']}")
                 sys.exit(1)
-            print(f"✅ VM forge-test-vm created successfully!")
-            print(f"\nReady to test start workflow...")
+            print("✅ VM forge-test-vm created successfully!")
+            print("\nReady to test start workflow...")
             sys.exit(0)
 
         time.sleep(interval)
@@ -94,5 +94,5 @@ for attempt in range(max_attempts):
         print(f"Error polling: {e}")
         time.sleep(interval)
 
-print(f"❌ Timeout waiting for VM creation")
+print("❌ Timeout waiting for VM creation")
 sys.exit(1)
