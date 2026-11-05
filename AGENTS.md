@@ -1,4 +1,4 @@
-<!-- Managed by harkers/repo-standards at revision 5371ef03. Use .repo-standards.yml overrides instead of editing this header away. -->
+<!-- Managed by harkers/repo-standards at revision 13693659. Use .repo-standards.yml overrides instead of editing this header away. -->
 
 # Canonical Agent Operating Contract
 
@@ -12,11 +12,14 @@ about defects. Every rule, agent, subagent and project rule file inherits it:
 
 ```text
 canonical standards source → global OpenCode AGENTS.md → repository AGENTS.md
-  → role-specific agent instructions → dispatched subagent briefs
+  → role-specific agent instructions → repository-local role instructions
+  → dispatched subagent briefs
 ```
 
 A lower layer may add requirements. A lower layer may never remove, weaken or contradict a higher
-one. Repository `AGENTS.md` files carry project-specific rules only. Role contracts in `agents/`
+one. Repository `AGENTS.md` files carry project-specific rules only. Repository-specific additions to
+a single role go in `.repo-standards/agents/<role>.md`, which each managed agent file references
+and sync never writes, so they survive every standards sync. Role contracts in `agents/`
 strengthen the policy; they never duplicate it and never shortcut around it.
 
 Governing principle: **do not optimise for pleasing the user — optimise for helping the user be
@@ -37,10 +40,14 @@ Binding obligations, all defined in full by that document:
 
 ## Global rules
 
+- Canonical work management: before substantive work, resolve or create the WorkItem governed by the pinned canonical contract (`harkers/.github` `workitem/v4.1` + `workitem-gate/v8`) through the WorkHub CLI boundary; agents must not invent IDs, states or parallel TODO authorities, and must not vendor the contract locally — WorkHub refuses a local `workitem/` copy. See `harkers/.github#47`.
 - Do not implement directly from an architecture epic.
 - Every implementation change must belong to a bounded issue.
 - Every implementation issue must have an approved specification and implementation plan before coding begins.
-- Use one dedicated branch/worktree per implementation issue unless the repository explicitly documents a safer alternative.
+- Planning and decomposition follow `docs/process/planning-decomposition.md`: broad plans are split
+  automatically into dependency-safe bounded execution units, and routine split decisions are not
+  pushed back to the user.
+- Every mutating implementation issue MUST use exactly one dedicated, control-plane-assigned and verified branch/worktree before entering `READY` or `IN_PROGRESS`. The live/default checkout is not a valid mutation target. Agents consume the assigned worktree and MUST NOT create, switch, reuse or substitute another worktree. Read-only discovery/planning/review may run without a worktree when the control plane has verified and recorded the task's read-only scope.
 - Workers may make claims; evidence verifiers decide whether material claims are supported by actual source evidence.
 - A worker must not mark its own task complete.
 - Reviewer findings are claims and may be `SUPPORTED`, `REFUTED` or `UNCLEAR` after verification.
@@ -57,9 +64,13 @@ Binding obligations, all defined in full by that document:
 - A known blocking defect is incompatible with `DONE`; use `BLOCKED`, `FAILED` or `REQUIRES_REMEDIATION`.
 - Local artefacts are not delivery: a commit, push, PR and CI check are part of the gate for deliverable engineering work.
 
+## Knowledge
+
+Harker Systems uses Obsidian as its authoritative infrastructure and operational knowledge repository. Notion has been permanently retired. Before infrastructure work, consult relevant Obsidian documentation. Following substantive changes, update the affected Obsidian documentation. Use Forgejo for source code, version history and work tracking. Do not request, recommend, initialise or reconnect Notion. Never store credentials or secrets in Obsidian. Details: `docs/process/knowledge.md`.
+
 ## Required delivery flow
 
-`issue → specification → implementation plan → worktree → scout → builder → task validation → atomic commit → draft PR → test engineer → fast reviewer → conditional cloud/specialist review → evidence verifier → reporter → PR_READY`
+`feature/issue → specification → implementation plan or plan-set → bounded implementation issue → worktree → scout → builder → task validation → atomic commit → draft PR → test engineer → fast reviewer → conditional cloud/specialist review → evidence verifier → reporter → PR_READY`
 
 ## Automatic delivery behaviour
 
@@ -82,8 +93,8 @@ Tasks must fit comfortably within one local-model working session. If a task req
 Default routes:
 
 - `REVIEW_FAST` → Swift Qwen3.8 OQ6/MTP
-- `REVIEW_CLOUD` → GLM Cloud Engineer (`glm-5:cloud`)
-- `REVIEW_DISSENT` → Gemma 4 31B
+- `REVIEW_CLOUD` → gpt-oss 120B cloud seat (`cloud-gpt-oss`)
+- `REVIEW_DISSENT` → Gemma 4 31B (`gemma4-31b-31g`, local)
 - `EVIDENCE_VERIFICATION` → Granite 4.2 8B
 - `SECURITY_REVIEW` → Titus Cybersecurity 35B
 - `SAFETY_POLICY_REVIEW` → Granite Guardian 4.1 8B
@@ -102,3 +113,7 @@ A task may enter `DONE` only when:
 6. supported blocking review findings are resolved or explicitly accepted under repository policy;
 7. the completion packet has been produced;
 8. reporter handoff has completed where configured.
+
+## Build Assurance
+
+Agents may make claims; only a passing Verification Evidence Packet bound to the commit permits `PR_READY`/`DONE`.
