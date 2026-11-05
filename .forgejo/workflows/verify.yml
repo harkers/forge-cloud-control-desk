@@ -1,4 +1,4 @@
-# Managed by harkers/repo-standards at revision 13693659. Use .repo-standards.yml overrides instead of editing this header away.
+# Managed by harkers/repo-standards at revision a74cbfaa. Use .repo-standards.yml overrides instead of editing this header away.
 # Reference verification workflow (template; not run from this repository).
 #
 # Standards: standards/build-assurance.md, standards/security-assurance.md.
@@ -152,9 +152,11 @@ jobs:
           # --break-system-packages: Debian/Ubuntu images mark the system Python
           # externally managed (PEP 668) and ship distro-owned packages without RECORD
           # files (e.g. PyJWT), so pip cannot uninstall them: --ignore-installed installs
-          # over them. PyYAML is pinned here because tools/ imports it and non-GitHub
-          # runner images do not ship it. The job container is disposable.
-          python3 -m pip install --disable-pip-version-check --break-system-packages --ignore-installed "PyYAML==6.0.2"
+          # over them. PyYAML and jsonschema are pinned here because tools/ imports them
+          # and non-GitHub runner images do not ship them (without jsonschema the emit
+          # step crashes and no packet is written, rs#15). The job container is disposable.
+          # shortcut: transitive deps of jsonschema are unpinned (as in requirements-ci.txt), hash-pin them if the supply-chain baseline asks for it.
+          python3 -m pip install --disable-pip-version-check --break-system-packages --ignore-installed "PyYAML==6.0.2" "jsonschema==4.25.1"
           # trivy v0.75.0 — pinned release download (official GitHub release).
           # Trivy backs the infrastructure_scan producer for the
           # `infrastructure` profile (rs#77).
