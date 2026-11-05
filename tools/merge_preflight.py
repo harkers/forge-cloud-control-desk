@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Managed by harkers/repo-standards at revision a74cbfaa. Use .repo-standards.yml overrides instead of editing this header away.
+# Managed by harkers/repo-standards at revision f63e7db4. Use .repo-standards.yml overrides instead of editing this header away.
 """Check a branch before starting work on it, and again before merging it.
 
 Worktree isolation is per-task. It stops two agents sharing a *checkout*; it does
