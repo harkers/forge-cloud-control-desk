@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Managed by harkers/repo-standards at revision f63e7db4. Use .repo-standards.yml overrides instead of editing this header away.
+# Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away.
 """Check a branch before starting work on it, and again before merging it.
 
 Worktree isolation is per-task. It stops two agents sharing a *checkout*; it does
@@ -21,16 +21,22 @@ and any "yes" is a stop:
 * **Already landed?** — the branch has no patches absent from the base, so
   merging it changes nothing and re-doing its work is waste.
 * **Local overlap?** — another unmerged local branch touches the same files.
-* **Remote overlap?** — an open PR touches the same files. Needs `gh`; reported
-  as unchecked when unavailable rather than assumed clean.
+* **Remote overlap?** — an open PR on Forgejo touches the same files. Needs
+  `FORGEJO_TOKEN` (API base `FORGEJO_URL`, default https://forge.harker.systems);
+  reported as unchecked when unavailable rather than assumed clean. The GitHub
+  mirror is never consulted: its PRs are not the estate's.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
+import re
 import subprocess
 import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 
@@ -39,6 +45,14 @@ def _git(root: Path, *args: str) -> tuple[int, str]:
         ["git", *args], cwd=root, capture_output=True, text=True, check=False
     )
     return proc.returncode, proc.stdout
+
+
+def resolve_ref(root: Path, branch: str) -> str:
+    """`branch`, or `origin/<branch>` when only the remote-tracking ref exists (CI PR checkouts)."""
+    for ref in (branch, f"origin/{branch}"):
+        if _git(root, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}")[0] == 0:
+            return ref
+    return branch
 
 
 def changed_files(root: Path, base: str, branch: str) -> set[str]:
@@ -78,35 +92,59 @@ def local_overlaps(
     return overlaps
 
 
+def _forgejo_repo(root: Path) -> str | None:
+    """`owner/repo` from the CI environment, else from the `origin` URL."""
+    if os.environ.get("GITHUB_REPOSITORY"):
+        return os.environ["GITHUB_REPOSITORY"]
+    code, url = _git(root, "remote", "get-url", "origin")
+    m = re.search(r"[/:]([^/:]+/[^/]+?)(?:\.git)?/?$", url.strip()) if code == 0 else None
+    return m.group(1) if m else None
+
+
+def _forgejo_pages(api: str, path: str, token: str) -> list[dict]:
+    """Every item of a paginated Forgejo list endpoint."""
+    items: list[dict] = []
+    sep = "&" if "?" in path else "?"
+    for page in range(1, 101):  # 5,000 items: far beyond any open-PR backlog
+        req = urllib.request.Request(
+            f"{api}{path}{sep}limit=50&page={page}",
+            headers={"Authorization": f"token {token}", "Accept": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            batch = json.loads(resp.read() or b"[]")
+        if not batch:
+            break
+        items.extend(batch)
+    return items
+
+
 def remote_overlaps(
     root: Path, branch: str, files: set[str]
 ) -> tuple[list[tuple[int, str, list[str]]], str]:
-    """Open PRs touching any of `files`. Returns (overlaps, note)."""
-    try:
-        proc = subprocess.run(
-            ["gh", "pr", "list", "--state", "open", "--json", "number,headRefName,files"],
-            cwd=root,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-    except FileNotFoundError:  # no gh binary at all (e.g. a Forgejo runner image)
-        return [], "gh unavailable — open PRs NOT checked"
-    if proc.returncode != 0:
-        return [], "gh unavailable — open PRs NOT checked"
-    try:
-        prs = json.loads(proc.stdout or "[]")
-    except json.JSONDecodeError:
-        return [], "gh output unparseable — open PRs NOT checked"
+    """Open Forgejo PRs touching any of `files`. Returns (overlaps, note)."""
+    token = os.environ.get("FORGEJO_TOKEN")
+    repo = _forgejo_repo(root)
+    if not token or not repo:
+        return [], "FORGEJO_TOKEN or repository unknown — open PRs NOT checked"
+    api = os.environ.get("FORGEJO_URL", "https://forge.harker.systems").rstrip("/") + "/api/v1"
 
     overlaps: list[tuple[int, str, list[str]]] = []
-    for pr in prs:
-        if pr.get("headRefName") == branch:
-            continue
-        touched = {f.get("path") for f in (pr.get("files") or []) if f.get("path")}
-        shared = sorted(files & touched)
-        if shared:
-            overlaps.append((pr.get("number"), pr.get("headRefName", "?"), shared))
+    try:
+        for pr in _forgejo_pages(api, f"/repos/{repo}/pulls?state=open", token):
+            head = (pr.get("head") or {}).get("ref", "?")
+            # Own PR, or one stacked on this branch: already coordinated with it.
+            if branch in (head, (pr.get("base") or {}).get("ref")):
+                continue
+            touched = {
+                f.get("filename")
+                for f in _forgejo_pages(api, f"/repos/{repo}/pulls/{pr['number']}/files", token)
+                if f.get("filename")
+            }
+            shared = sorted(files & touched)
+            if shared:
+                overlaps.append((pr["number"], head, shared))
+    except (urllib.error.URLError, OSError, ValueError, KeyError) as exc:
+        return [], f"Forgejo API unavailable ({exc}) — open PRs NOT checked"
     return overlaps, ""
 
 
@@ -124,7 +162,8 @@ def main(argv: list[str] | None = None) -> int:
         code, out = _git(root, "rev-parse", "--abbrev-ref", "HEAD")
         branch = out.strip() if code == 0 else "HEAD"
 
-    files = changed_files(root, args.base, branch)
+    ref = resolve_ref(root, branch)  # git operations; `branch` stays the PR head name
+    files = changed_files(root, args.base, ref)
     print(f"branch {branch} vs {args.base}: {len(files)} file(s) changed")
 
     problems: list[str] = []
@@ -133,11 +172,11 @@ def main(argv: list[str] | None = None) -> int:
     # `git cherry origin/main main` reports nothing unmerged by definition, so the
     # check fired on the default branch and turned the gate red on `main` while
     # passing in the feature worktree. A guard must be evaluated where it runs.
-    _, head_sha = _git(root, "rev-parse", branch)
+    _, head_sha = _git(root, "rev-parse", ref)
     _, base_sha = _git(root, "rev-parse", args.base)
     is_base = bool(head_sha.strip()) and head_sha.strip() == base_sha.strip()
 
-    if not is_base and already_landed(root, args.base, branch):
+    if not is_base and already_landed(root, args.base, ref):
         problems.append(
             f"{branch} has no patches absent from {args.base} — its work is already "
             "landed. Merging changes nothing; re-doing the work is waste."

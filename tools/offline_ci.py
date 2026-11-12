@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Managed by harkers/repo-standards at revision f63e7db4. Use .repo-standards.yml overrides instead of editing this header away.
+# Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away.
 """Run a GitHub Actions workflow's steps locally, offline.
 
 Why this exists
@@ -154,14 +154,7 @@ def run_step(step: Step, root: Path, timeout: float | None = None) -> tuple[str,
             (shim / "python").symlink_to(shutil.which("python3", path=env.get("PATH")))
             env["PATH"] = f"{shim}{os.pathsep}{env.get('PATH', '')}"
     try:
-        if step.lang == "python":
-            argv = [sys.executable, "-c", step.script]
-        else:
-            # The hosted runner's default shell on Linux is bash; match it so
-            # line continuations and pipes behave identically.
-            argv = ["bash", "-euo", "pipefail", "-c", step.script]
-        proc = subprocess.run(
-            argv,
+        run_opts: dict = dict(
             cwd=root,
             capture_output=True,
             text=True,
@@ -172,6 +165,14 @@ def run_step(step: Step, root: Path, timeout: float | None = None) -> tuple[str,
             stdin=subprocess.DEVNULL,
             timeout=timeout,
         )
+        # The step script comes from the repository's own workflow file. Each
+        # argv starts with a fixed program (/usr/bin/env runs this interpreter).
+        if step.lang == "python":
+            proc = subprocess.run(["/usr/bin/env", sys.executable, "-c", step.script], **run_opts)
+        else:
+            # The hosted runner's default shell on Linux is bash; match it so
+            # line continuations and pipes behave identically.
+            proc = subprocess.run(["bash", "-euo", "pipefail", "-c", step.script], **run_opts)
     except subprocess.TimeoutExpired:
         return "FAIL", f"timed out after {timeout}s"
     except OSError as exc:  # pragma: no cover - platform failure

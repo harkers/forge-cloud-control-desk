@@ -1,4 +1,4 @@
-<!-- Managed by harkers/repo-standards at revision f63e7db4. Use .repo-standards.yml overrides instead of editing this header away. -->
+<!-- Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away. -->
 
 # Canonical Agent Operating Contract
 
@@ -31,9 +31,9 @@ Binding obligations, all defined in full by that document:
 - verify rather than assume wherever verification is reasonably possible;
 - `DONE` only when the mandatory completion gate is answered from evidence, otherwise
   `PARTIALLY_VERIFIED` / `BLOCKED` / `FAILED` / `REQUIRES_REMEDIATION`;
-- every material defect raised in GitHub through the repository's issue form, with the issue-quality
+- every material defect raised on Forgejo through the repository's issue form, with the issue-quality
   contract, reusing an existing issue when the root cause is already tracked;
-- every material finding reported through the finding contract, always including a `GitHub issue:`
+- every material finding reported through the finding contract, always including a `Tracking issue:`
   field;
 - deliverable work committed, pushed and PR-linked, with CI checked;
 - the last-turn review performed before any final response.
@@ -59,14 +59,23 @@ Binding obligations, all defined in full by that document:
 - Centrally managed standards files must not be edited to bypass required gates; use repository override configuration instead.
 - Every agent inherits `docs/process/behavioral-policy.md`; role contracts strengthen it and never weaken it.
 - Semantic memory, conversation history, summaries, reporter output and agent recollection are advisory evidence only; they never establish current operational state, and any recalled state claim is revalidated against the authoritative source before action.
-- Every material defect discovered in any repository is raised in GitHub using the repository's issue form, unless an existing issue already tracks the same root cause.
-- A material finding without a `GitHub issue:` reference is an incomplete report, not a complete one.
+- Forgejo (`https://forge.harker.systems`, owner `vulcan`) is the only forge: issues, pull requests and CI live there. GitHub `harkers/*` is a push mirror; never open, update or merge issues or pull requests there, and never use `gh` or the GitHub API to track or deliver work.
+- Every material defect discovered in any repository is raised on Forgejo using the repository's issue form, unless an existing issue already tracks the same root cause.
+- A material finding without a `Tracking issue:` reference is an incomplete report, not a complete one.
 - A known blocking defect is incompatible with `DONE`; use `BLOCKED`, `FAILED` or `REQUIRES_REMEDIATION`.
 - Local artefacts are not delivery: a commit, push, PR and CI check are part of the gate for deliverable engineering work.
 
 ## Knowledge
 
 Harker Systems uses Obsidian as its authoritative infrastructure and operational knowledge repository. Notion has been permanently retired. Before infrastructure work, consult relevant Obsidian documentation. Following substantive changes, update the affected Obsidian documentation. Use Forgejo for source code, version history and work tracking. Do not request, recommend, initialise or reconnect Notion. Never store credentials or secrets in Obsidian. Details: `docs/process/knowledge.md`.
+
+## Logging
+
+Software built or changed here ships with useful logs and a verbose mode: a log level settable without a rebuild (default `info`, verbose `debug`), every user-visible failure logged at `warn`/`error` with actionable context, client apps reporting failures to the server log, and no secrets in logs. Missing logging is a review finding. Details: `docs/process/logging.md`.
+
+## Engineering and operability
+
+New work starts on a new branch in its own worktree, never the live checkout. Tools are CLI-first. Services check their dependencies at startup, treat third-party rate limits as configuration and back off on `429`/`503`, run long jobs inside the service with visible progress, and report their version. Every deploy keeps a rollback. Tests never depend on wall-clock timing. Host moves follow the vault runbook. The Harker Knowledge vault is updated as the human reference. Details: `docs/process/engineering.md`.
 
 ## Required delivery flow
 
@@ -93,7 +102,7 @@ Tasks must fit comfortably within one local-model working session. If a task req
 Default routes:
 
 - `REVIEW_FAST` → Swift Qwen3.8 OQ6/MTP
-- `REVIEW_CLOUD` → gpt-oss 120B cloud seat (`cloud-gpt-oss`)
+- `REVIEW_CLOUD` → OpenRouter OpenAI gpt-oss 120B (`openai/gpt-oss-120b`)
 - `REVIEW_DISSENT` → Gemma 4 31B (`gemma4-31b-31g`, local)
 - `EVIDENCE_VERIFICATION` → Granite 4.2 8B
 - `SECURITY_REVIEW` → Titus Cybersecurity 35B

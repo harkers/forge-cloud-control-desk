@@ -1,4 +1,4 @@
-<!-- Managed by harkers/repo-standards at revision f63e7db4. Use .repo-standards.yml overrides instead of editing this header away. -->
+<!-- Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away. -->
 
 # Canonical Agent Turn Handoff
 
@@ -34,7 +34,7 @@ problems:
       A deliberately false claim can pass the verification gate.
     evidence:
       - { ref: tests/test_spec_claims.py::test_false_claim_fails, type: test }
-    github_issue: "#123"   # issue ref | FIXED_IN_TURN | NOT_RAISED — BLOCKING REASON: <reason>
+    tracking_issue: "#123" # issue ref | FIXED_IN_TURN | NOT_RAISED — BLOCKING REASON: <reason>
 highest_unresolved_priority: P0   # P0 | P1 | P2 | P3 | NONE
 proposed_next:
   capability: COMPLEX_CODE
@@ -82,7 +82,7 @@ priority       P0 / P1 / P2 / P3
 state          OPEN / FIX_IN_PROGRESS / FOUND_AND_FIXED / VERIFIED_FIXED / DEFERRED / BLOCKED
 summary        concise falsifiable description
 evidence       one or more references when evidence exists
-github_issue   durable issue reference, FIXED_IN_TURN, or explicit NOT_RAISED blocking reason
+tracking_issue durable issue reference, FIXED_IN_TURN, or explicit NOT_RAISED blocking reason
 ```
 
 The canonical meanings of P0–P3 and the defect states are defined in
@@ -95,10 +95,10 @@ Rules:
    a claim known to be false is P0 unless evidence proves it cannot affect a completion/release
    decision.
 3. **Fixed defects stay visible.** `FOUND_AND_FIXED` / `VERIFIED_FIXED` use
-   `github_issue: FIXED_IN_TURN` when a redundant issue is not required and include regression
+   `tracking_issue: FIXED_IN_TURN` when a redundant issue is not required and include regression
    evidence in the turn/completion evidence.
 4. **Unresolved defects are tracked.** `OPEN`, `FIX_IN_PROGRESS`, `DEFERRED` and `BLOCKED` material
-   defects must have a durable GitHub issue before completion. If issue creation genuinely failed,
+   defects must have a durable issue on Forgejo before completion. If issue creation genuinely failed,
    say `NOT_RAISED — BLOCKING REASON: ...`; that is not a completion-ready state.
 5. **Derive the highest priority.** `highest_unresolved_priority` must agree with the unresolved
    problem items. Never lower it to make the turn look complete.
@@ -184,7 +184,7 @@ Applied when determining the next action:
 ```text
 1. Are there unresolved P0 defects?             YES -> FIX/CONTAIN highest P0; never COMPLETE
 2. Are there unresolved P1 defects?             YES -> FIX highest P1 or validate explicit authorised waiver
-3. Is any material unresolved defect untracked? YES -> CREATE/UPDATE durable GitHub issue
+3. Is any material unresolved defect untracked? YES -> CREATE/UPDATE durable issue on Forgejo
 4. Is there P2 work that fix-first policy requires before unrelated discretionary work?
                                                 YES -> that repair/tracking action
 5. What is the active bounded objective, acceptance criterion or gate?

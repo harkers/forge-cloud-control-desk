@@ -1,6 +1,12 @@
-<!-- Managed by harkers/repo-standards at revision f63e7db4. Use .repo-standards.yml overrides instead of editing this header away. -->
+<!-- Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away. -->
 
 # Pull Request Standard
+
+## Where pull requests live
+
+Pull requests are opened, reviewed and merged on Forgejo (`https://forge.harker.systems`, owner
+`vulcan`), through its web UI or API. Never open or merge a pull request on the GitHub mirror, and
+never use `gh pr`: the next mirror sync wipes it.
 
 ## Draft-first lifecycle
 

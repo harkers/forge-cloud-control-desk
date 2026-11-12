@@ -1,4 +1,4 @@
-<!-- Managed by harkers/repo-standards at revision f63e7db4. Use .repo-standards.yml overrides instead of editing this header away. -->
+<!-- Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away. -->
 
 # Completion Packet Standard
 
@@ -97,7 +97,7 @@ defects:
         - tests/test_spec_claims.py::test_declared_four_column_row
       regression_evidence:
         - mutation: reverting to three-column parsing makes three tests fail
-      github_issue: null
+      tracking_issue: null
       blocks_pr: false
 
 review:
@@ -130,7 +130,7 @@ verification_evidence:
     - control_id: RS-SEC-001
       status: PASS
   tracked_findings: []
-  ci_run: https://github.com/owner/repo/actions/runs/1
+  ci_run: https://forge.harker.systems/vulcan/repo/actions/runs/1
 
 risks:
   known: []
@@ -183,7 +183,7 @@ OPEN | FIX_IN_PROGRESS | FOUND_AND_FIXED | VERIFIED_FIXED | DEFERRED | BLOCKED
 
 `highest_unresolved_priority` is derived only from defects whose state is `OPEN`, `FIX_IN_PROGRESS`, `DEFERRED` or `BLOCKED`. `FOUND_AND_FIXED` and `VERIFIED_FIXED` remain in the packet as provenance and regression evidence but do not count as unresolved.
 
-A defect fixed during the current work does not require a redundant open GitHub issue solely because it once existed. It must remain recorded in the packet with fix/regression evidence. Any defect that remains unresolved at turn completion must carry a durable GitHub issue reference unless issue creation itself is blocked and that blocking reason is recorded elsewhere in the completion evidence.
+A defect fixed during the current work does not require a redundant open issue solely because it once existed. It must remain recorded in the packet with fix/regression evidence. Any defect that remains unresolved at turn completion must carry a durable issue on Forgejo reference unless issue creation itself is blocked and that blocking reason is recorded elsewhere in the completion evidence.
 
 ## Fix-first ordering
 

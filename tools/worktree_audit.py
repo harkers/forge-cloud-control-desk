@@ -1,4 +1,4 @@
-# Managed by harkers/repo-standards at revision f63e7db4. Use .repo-standards.yml overrides instead of editing this header away.
+# Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away.
 """Worktree audit: find worktrees whose work is already landed, and prune them.
 
 `process/worktrees.md` requires every worktree to be removed once its work is
@@ -32,7 +32,8 @@ MISSING = "PATH_MISSING"
 
 
 def _run(args: list[str], cwd: Path) -> tuple[int, str, str]:
-    proc = subprocess.run(args, cwd=cwd, capture_output=True, text=True, check=False)
+    """Run `git <args>`; only git is ever invoked."""
+    proc = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, check=False)
     return proc.returncode, proc.stdout, proc.stderr
 
 
@@ -50,7 +51,7 @@ def primary_path(root: Path) -> Path | None:
 
 def worktrees(root: Path) -> list[dict[str, str]]:
     """Parse `git worktree list --porcelain` into records."""
-    code, out, _ = _run(["git", "worktree", "list", "--porcelain"], root)
+    code, out, _ = _run(["worktree", "list", "--porcelain"], root)
     if code != 0:
         return []
     records: list[dict[str, str]] = []
@@ -82,7 +83,7 @@ def classify(record: dict[str, str], root: Path, base: str) -> str:
     if record.get("detached"):
         return DETACHED
 
-    code, out, _ = _run(["git", "status", "--porcelain"], path)
+    code, out, _ = _run(["status", "--porcelain"], path)
     if code != 0:
         return MISSING
     if out.strip():
@@ -93,7 +94,7 @@ def classify(record: dict[str, str], root: Path, base: str) -> str:
         return DETACHED
 
     # `git cherry` prints '+' for a patch not present in base, '-' when present.
-    code, out, _ = _run(["git", "cherry", base, branch], path)
+    code, out, _ = _run(["cherry", base, branch], path)
     if code != 0:
         return UNMERGED
     if any(line.startswith("+") for line in out.splitlines()):
@@ -122,13 +123,13 @@ def prune(root: Path, base: str) -> tuple[list[str], list[str]]:
     for row in audit(root, base):
         if row["status"] != SAFE:
             continue
-        code, _, err = _run(["git", "worktree", "remove", row["path"]], root)
+        code, _, err = _run(["worktree", "remove", row["path"]], root)
         if code == 0:
             removed.append(row["path"])
         else:
             failed.append(f"{row['path']}: {err.strip()[:120]}")
     if removed:
-        _run(["git", "worktree", "prune"], root)
+        _run(["worktree", "prune"], root)
     return removed, failed
 
 

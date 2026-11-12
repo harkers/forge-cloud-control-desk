@@ -1,4 +1,4 @@
-<!-- Managed by harkers/repo-standards at revision f63e7db4. Use .repo-standards.yml overrides instead of editing this header away. -->
+<!-- Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away. -->
 
 # Branch and Worktree Standard
 
@@ -148,11 +148,11 @@ Read-only reviewer/verifier roles may inspect the same issue worktree with read-
 
 Worktree isolation stops two agents sharing a checkout; it does nothing about two agents editing
 the same files. Before merging, an agent MUST re-check for overlapping work: another unmerged local
-branch, or an open pull request, touching the same files. Checking once when work starts is not
+branch, or an open pull request on Forgejo, touching the same files. Checking once when work starts is not
 enough — a check that was true twenty minutes ago is not true now.
 
 ```bash
-python3 tools/merge_preflight.py --root . --check
+FORGEJO_TOKEN=... python3 tools/merge_preflight.py --root . --check   # without the token, open PRs are NOT checked
 ```
 
 ## Cleanup
