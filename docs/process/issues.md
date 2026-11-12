@@ -1,4 +1,4 @@
-<!-- Managed by harkers/repo-standards at revision f63e7db4. Use .repo-standards.yml overrides instead of editing this header away. -->
+<!-- Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away. -->
 
 # Issue Standard
 
@@ -36,7 +36,7 @@ in `docs/process/behavioral-policy.md` and `docs/process/completion-packet.md`.
 
 The full estate label catalogue, including these, is `standards/labels.md`.
 
-Preferred GitHub labels are:
+Preferred labels are:
 
 ```text
 priority:P0
@@ -56,8 +56,8 @@ when a lower-severity defect blocks critical delivery work.
 
 ### Form selection
 
-1. Inspect the repository's issue forms (`config.yml` contacts plus the canonical forms inherited
-   from `harkers/.github`).
+1. Inspect the repository's issue forms (`.github/ISSUE_TEMPLATE/`, which Forgejo reads; the
+   canonical forms are shipped from `vulcan/repo-standards` by the `github_issue_templates` component).
 2. Choose the form whose nature matches the finding: `bug-incident.yml` for defects,
    `security-finding.yml` for vulnerabilities and dependency/supply-chain risk,
    `investigation.yml` for an unresolved unknown, `architecture-decision.yml` for a decision,
@@ -68,7 +68,7 @@ when a lower-severity defect blocks critical delivery work.
 
 If no canonical form matches the class of defect — for example a performance, CI/build-failure or
 technical-debt finding with no dedicated form — use the closest valid form and raise a separate
-issue against `harkers/.github` requesting the missing canonical form. Record that request as
+issue on Forgejo against `vulcan/repo-standards` requesting the missing canonical form. Record that request as
 `Related work` in the defect issue.
 
 ### Duplicate prevention
@@ -103,10 +103,10 @@ Priority label: priority:P0 / priority:P1 / priority:P2 / priority:P3, when avai
 ### Reporting a finding
 
 ```text
-Issue: / Priority: / State: / Evidence: / Impact: / Resolution: / GitHub issue: / Next action:
+Issue: / Priority: / State: / Evidence: / Impact: / Resolution: / Tracking issue: / Next action:
 ```
 
-`GitHub issue:` is never omitted. A fixed-in-turn finding uses `FIXED_IN_TURN` and points to its
+`Tracking issue:` is never omitted. A fixed-in-turn finding uses `FIXED_IN_TURN` and points to its
 regression evidence. If an unresolved issue could not be raised, the field reads
 `NOT RAISED — BLOCKING REASON: <reason>`.
 
@@ -124,7 +124,7 @@ regression evidence. If an unresolved issue could not be raised, the field reads
 10. Every material defect receives exactly one `P0`–`P3` priority before turn completion.
 11. Every agent-raised issue uses the appropriate issue form, with all relevant required fields populated.
 12. Every agent-raised issue carries the issue quality contract, including `Root cause: UNKNOWN` when the cause is not yet established.
-13. Every material finding reported to another agent carries `Priority:`, `State:` and `GitHub issue:` fields.
+13. Every material finding reported to another agent carries `Priority:`, `State:` and `Tracking issue:` fields.
 14. Duplicate root causes are updated in place, not re-filed.
 15. Unresolved `P0` prevents `PR_READY` and `DONE` without exception.
 16. Unresolved `P1` prevents `PR_READY` and `DONE` unless an explicit repository-authorised waiver is represented in evidence.

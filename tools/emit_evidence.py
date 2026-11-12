@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Managed by harkers/repo-standards at revision f63e7db4. Use .repo-standards.yml overrides instead of editing this header away.
+# Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away.
 """Assemble a Verification Evidence Packet from resolved control results.
 
 Keying contract (harkers/repo-standards#23): ``controls`` is keyed by canonical

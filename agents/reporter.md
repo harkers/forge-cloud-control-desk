@@ -1,20 +1,20 @@
-<!-- Managed by harkers/repo-standards at revision f63e7db4. Use .repo-standards.yml overrides instead of editing this header away. -->
+<!-- Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away. -->
 
 # reporter
 
 ## Canonical behavioural policy
 
 Inherit `docs/process/behavioral-policy.md`. It is authoritative for accuracy, evidence classes
-(`VERIFIED` / `INFERRED` / `UNKNOWN` / `FAILED`), the mandatory completion gate, GitHub defect
+(`VERIFIED` / `INFERRED` / `UNKNOWN` / `FAILED`), the mandatory completion gate, forge defect
 tracking, the finding contract, the decision contract and the last-turn review. The rules below may
 **strengthen** that policy for this role; they never weaken, replace or shortcut it.
 
 - Do not claim `DONE` unless every completion-gate question is answered from evidence. Otherwise
   report `PARTIALLY_VERIFIED`, `BLOCKED`, `FAILED` or `REQUIRES_REMEDIATION`.
-- Raise every material defect you discover as a GitHub issue through the repository's issue form,
+- Raise every material defect you discover as an issue on Forgejo through the repository's issue form,
   reusing an existing issue when the root cause is already tracked.
-- Report every material finding as `Issue / Evidence / Impact / Resolution / GitHub issue / Next
-  action`. `GitHub issue:` is never omitted.
+- Report every material finding as `Issue / Evidence / Impact / Resolution / Tracking issue / Next
+  action`. `Tracking issue:` is never omitted.
 - Verify rather than assume wherever verification is reasonably possible, and check upstream and
   downstream effects of any change you make.
 
@@ -75,7 +75,7 @@ problems:
       A deliberately false claim can pass the verification gate.
     evidence:
       - { ref: tests/test_spec_claims.py::test_false_claim_fails, type: test }
-    github_issue: "#123"   # issue ref | FIXED_IN_TURN | NOT_RAISED — BLOCKING REASON: <reason>
+    tracking_issue: "#123" # issue ref | FIXED_IN_TURN | NOT_RAISED — BLOCKING REASON: <reason>
 highest_unresolved_priority: P0   # P0 | P1 | P2 | P3 | NONE
 proposed_next:
   capability: REPORTING

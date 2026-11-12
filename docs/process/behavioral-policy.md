@@ -1,4 +1,4 @@
-<!-- Managed by harkers/repo-standards at revision f63e7db4. Use .repo-standards.yml overrides instead of editing this header away. -->
+<!-- Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away. -->
 
 # Canonical Behavioural Policy
 
@@ -84,9 +84,9 @@ source:
 
 | Recalled claim about | Authoritative source |
 | --- | --- |
-| issue state | the live GitHub issue |
-| PR state | the live GitHub pull request |
-| CI result | the live GitHub checks / CI run |
+| issue state | the live issue on Forgejo |
+| PR state | the live pull request on Forgejo |
+| CI result | the live CI run on Forgejo |
 | WorkItem state | the WorkHub ledger |
 | TODO state | the repository task tracker |
 | test state | a test run performed in the current turn |
@@ -101,7 +101,7 @@ context. For example:
 
 ```text
 Hindsight memory: "Reviewer recommended closing issue #45."
-GitHub:           #45 OPEN
+Forge:            #45 OPEN
 
 Correct conclusion: #45 remains OPEN. The historical recommendation may be relevant
 context but does not alter state.
@@ -127,8 +127,8 @@ Before claiming `DONE`, an agent must be able to answer all of these from eviden
 - What assumptions remain?
 - What issues remain?
 - What is the highest unresolved defect priority (`P0`, `P1`, `P2`, `P3` or `NONE`)?
-- Has every discovered material issue or bug been raised in GitHub, or recorded as fixed-in-turn with regression evidence?
-- Was the correct GitHub issue form used?
+- Has every discovered material issue or bug been raised on Forgejo, or recorded as fixed-in-turn with regression evidence?
+- Was the correct issue form used?
 - Does every remaining material issue have a resolution or an explicit next action?
 - Is the work committed, if a commit is expected?
 - Is the branch pushed, if remote delivery is expected?
@@ -159,9 +159,17 @@ machine-readable delivery record.
 
 ## Mandatory defect tracking
 
-**Any material issue discovered during work MUST be represented by a durable GitHub issue**, unless
+**Any material issue discovered during work MUST be represented by a durable issue on Forgejo**, unless
 an existing open issue already tracks the same root cause, or the defect is fully fixed and
 regression-verified during the same bounded work before turn completion.
+
+**Forgejo is the only forge.** Every repository's issues, pull requests and CI live on Forgejo
+(`https://forge.harker.systems`, owner `vulcan`). GitHub `harkers/*` repositories are push-mirror
+copies that Forgejo force-overwrites: issues and pull requests opened there are never mirrored back
+and merges there are wiped. Raise, update and look up issues, and open, review and merge pull
+requests, on Forgejo only, through its web UI or its API (`/api/v1`). Never use `gh`, the GitHub
+API or the GitHub web UI to track or deliver work. Where Forgejo cannot accept the issue, use the
+`NOT_RAISED — BLOCKING REASON:` form; never fall back to GitHub.
 
 Material means, at minimum: bugs, regressions, failing tests, broken configuration, security
 vulnerabilities, dependency vulnerabilities, CI failures, build failures, data-loss risks, incorrect
@@ -289,12 +297,12 @@ State:          OPEN / FIX_IN_PROGRESS / FOUND_AND_FIXED / VERIFIED_FIXED / DEFE
 Evidence:       the verifiable observation
 Impact:         who/what is affected and how badly
 Resolution:     the recommended remediation
-GitHub issue:   the new issue | the existing issue that already tracks it | FIXED_IN_TURN |
+Tracking issue:   the new issue | the existing issue that already tracks it | FIXED_IN_TURN |
                 NOT RAISED — BLOCKING REASON: <reason>
 Next action:    who does what next
 ```
 
-`GitHub issue:` may never be silently omitted. `FIXED_IN_TURN` is valid only when the packet contains
+`Tracking issue:` may never be silently omitted. `FIXED_IN_TURN` is valid only when the packet contains
 fix and regression evidence. If an unresolved issue genuinely cannot be raised, the reason is stated
 explicitly rather than the field being dropped.
 
@@ -367,7 +375,7 @@ Checks performed:             commands, tests, reviews
 Results:                      what passed and what failed
 Defects and priorities:       P0–P3, state, evidence and tracking
 Highest unresolved priority:  P0 / P1 / P2 / P3 / NONE
-GitHub issues raised:          new issues
+Tracking issues raised:        new issues
 Existing issues referenced:   reused issues
 Remaining issues:             unresolved findings
 Assumptions/unknowns:          INFERRED and UNKNOWN items
@@ -383,7 +391,7 @@ contract; both must be satisfied.
 Before emitting a final response, every substantive agent evaluates:
 
 1. Is there an identified issue without a resolution?
-2. Is there an identified bug or defect without a priority, state, and durable GitHub issue when unresolved?
+2. Is there an identified bug or defect without a priority, state, and durable issue on Forgejo when unresolved?
 3. Was the appropriate repository issue form used?
 4. Is there an unresolved failure without a next action, or a higher-priority defect being bypassed?
 5. Is there an unverified completion claim?
@@ -402,13 +410,13 @@ Engineering implementation work intended for delivery progresses through:
 ```text
 observe → verify → diagnose → decide → implement → self-review → test → inspect diff
   → identify defects → classify P0/P1/P2/P3 → apply fix-first ordering
-  → raise GitHub issues using appropriate forms for unresolved findings
+  → raise forge issues using appropriate forms for unresolved findings
   → independent review where required → remediate blocking findings
   → commit → push → create/update PR → link related issues → check CI → DONE
 ```
 
 Completed implementation does not sit in a worktree unless the task is explicitly local-only.
-A local file is not a GitHub issue, PR or branch: where delivery is expected, a local artefact alone
+A local file is not a forge issue, PR or branch: where delivery is expected, a local artefact alone
 is not completion.
 
 ## Compliance validation

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Managed by harkers/repo-standards at revision f63e7db4. Use .repo-standards.yml overrides instead of editing this header away.
+# Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away.
 """Refuse to create a commit in a protected branch's checkout.
 
 `process/worktrees.md` already states the rule this enforces:
@@ -78,13 +78,13 @@ def current_branch(root: Path) -> str | None:
     protected branch at the moment it is most likely to be committed to by
     mistake. It is kept as a fallback for older git versions.
     """
-    for cmd in (
-        ["git", "symbolic-ref", "--short", "HEAD"],
-        ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+    for args in (
+        ("symbolic-ref", "--short", "HEAD"),
+        ("rev-parse", "--abbrev-ref", "HEAD"),
     ):
         try:
             out = subprocess.run(
-                cmd,
+                ["git", *args],
                 cwd=root,
                 capture_output=True,
                 text=True,

@@ -1,4 +1,4 @@
-<!-- Managed by harkers/repo-standards at revision f63e7db4. Use .repo-standards.yml overrides instead of editing this header away. -->
+<!-- Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away. -->
 
 # Security Assurance Standard
 
@@ -103,7 +103,7 @@ The control MUST record in the Verification Evidence Packet, for each executed c
 
 ### Normative
 
-Scanner findings MUST NOT exist only as ephemeral CI/log output when they meet the configured escalation threshold. Any finding meeting the repository/profile escalation policy MUST create or update a durable GitHub issue using the appropriate Repo Standards issue type/template. The issue created or updated MUST capture the full [finding record](#finding-record).
+Scanner findings MUST NOT exist only as ephemeral CI/log output when they meet the configured escalation threshold. Any finding meeting the repository/profile escalation policy MUST create or update a durable issue on Forgejo using the appropriate Repo Standards issue type/template. The issue created or updated MUST capture the full [finding record](#finding-record).
 
 ### Reference implementation
 

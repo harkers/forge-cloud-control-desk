@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Managed by harkers/repo-standards at revision f63e7db4. Use .repo-standards.yml overrides instead of editing this header away.
+# Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away.
 """Run the assurance controls and assemble the emitter's input files.
 
 Why this exists
@@ -83,10 +83,13 @@ def _tool_version(command: str) -> str:
     name = shlex.split(command)[0]
     for args in (["--version"], ["version"]):
         try:
+            # /usr/bin/env resolves the producer's own tool on PATH; no shell.
             out = subprocess.run(
-                [name, *args], text=True, capture_output=True, timeout=60
+                ["/usr/bin/env", name, *args], text=True, capture_output=True, timeout=60
             )
         except (OSError, subprocess.SubprocessError):
+            continue
+        if out.returncode in (126, 127):  # env: tool not executable / not found
             continue
         text = (out.stdout or out.stderr or "").strip().splitlines()
         if text:
@@ -296,8 +299,6 @@ def run_control(name: str, command: str, results_dir: Path) -> dict[str, Any]:
         # The scanner failed and reported nothing: that is a control failure,
         # not a clean control.
         status = "FAIL"
-    elif completed.returncode != 0:
-        status = classify_severity(findings)
     else:
         status = classify_severity(findings)
 

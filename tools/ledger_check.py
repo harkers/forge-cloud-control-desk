@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-# Managed by harkers/repo-standards at revision f63e7db4. Use .repo-standards.yml overrides instead of editing this header away.
+# Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away.
 """Validate and repair the append-only remote-action ledger.
 
 Why this exists
 ---------------
-`.project/remote-actions.jsonl` records every GitHub mutation an agent performed:
+`.project/remote-actions.jsonl` records every forge mutation an agent performed:
 the evidence that a claimed remote action actually happened. It is append-only and
 committed, so two branches appending concurrently used to *conflict* — and the
 conflict was resolved by taking one side. Observed: `origin/main` held 6 entries, a
