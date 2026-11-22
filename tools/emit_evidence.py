@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away.
+# Managed by harkers/repo-standards at revision 0fb86f67. Use .repo-standards.yml overrides instead of editing this header away.
 """Assemble a Verification Evidence Packet from resolved control results.
 
 Keying contract (harkers/repo-standards#23): ``controls`` is keyed by canonical
@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Any
 
 from tools.assurance import resolve
+from tools.findings import fingerprint
 from tools.producers import remediation_for
 from tools.validate_evidence import overall_status
 
@@ -59,6 +60,42 @@ GATE_ONLY_REASON = (
     "completion evidence is validated by the gate's validate-evidence step; "
     "this control has no separate producer by design"
 )
+
+
+# Severities the packet schema accepts on a finding. A scanner's own value
+# outside these (grype "negligible" or "unknown") is recorded as "low", so it
+# is still counted. findings_by_severity has no "info" key, so "info" findings
+# are listed but not counted.
+PACKET_SEVERITIES = ("critical", "high", "medium", "low", "info")
+COUNTED_SEVERITIES = ("critical", "high", "medium", "low")
+
+
+def _packet_finding(
+    repository: str, control_id: str, finding: dict[str, Any]
+) -> dict[str, Any]:
+    """A finding in the packet's shape (schema: fingerprint, severity, status).
+
+    Raw scanner findings from tools/assemble_results.py carry scanner,
+    rule_or_vuln_id and component but no fingerprint or status; without them
+    every packet with a SAST, vulnerability or IaC finding failed validation
+    (mediaflow#93 era: 72 opengrep findings, 144 schema errors). A finding that
+    already has a fingerprint is kept as given. The fingerprint is
+    tools.findings.fingerprint over the same fields the issue reconciler uses,
+    so packet and tracking issue agree.
+    """
+    out = {key: value for key, value in finding.items() if key != "control_name"}
+    if "fingerprint" not in out:
+        out["fingerprint"] = fingerprint(
+            repository,
+            control_id,
+            str(finding.get("scanner", "unknown")),
+            str(finding.get("rule_or_vuln_id", finding.get("id", "unknown"))),
+            str(finding.get("component", "unknown")),
+        )
+    out.setdefault("status", "OPEN")
+    severity = str(out.get("severity", "info")).lower()
+    out["severity"] = severity if severity in PACKET_SEVERITIES else "low"
+    return out
 
 
 def _base_entry(control_id: str, requirement: str, status: str) -> dict[str, Any]:
@@ -191,14 +228,15 @@ def build_packet(
         _, worst_result = _worst(member_results)
         entry = _base_entry(control_id, "REQUIRED", worst_result.get("status", "FAIL"))
         entry["findings"] = [
-            {key: value for key, value in finding.items() if key != "control_name"}
+            _packet_finding(repository, control_id, finding)
             for finding in findings
             if finding.get("control_name") in (None, control_id, *members)
         ]
         counts: dict[str, int] = {}
         for finding in entry["findings"]:
-            severity = str(finding.get("severity", "info")).lower()
-            counts[severity] = counts.get(severity, 0) + 1
+            severity = finding["severity"]
+            if severity in COUNTED_SEVERITIES:
+                counts[severity] = counts.get(severity, 0) + 1
         entry["findings_by_severity"] = counts
         _merge_from_results(entry, member_results, worst_result)
         controls[control_id] = entry
@@ -212,7 +250,13 @@ def build_packet(
         "build": build,
         "controls": controls,
         "tracked_findings": [
-            {key: value for key, value in finding.items() if key != "control_name"}
+            _packet_finding(
+                repository,
+                resolved["controls"]
+                .get(finding.get("control_name"), {})
+                .get("control_id", finding.get("control_name") or "unknown"),
+                finding,
+            )
             for finding in findings
         ],
     }
