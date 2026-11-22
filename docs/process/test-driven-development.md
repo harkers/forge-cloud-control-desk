@@ -1,4 +1,4 @@
-<!-- Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away. -->
+<!-- Managed by harkers/repo-standards at revision 0fb86f67. Use .repo-standards.yml overrides instead of editing this header away. -->
 
 # Test-Driven Development Standard
 
@@ -49,6 +49,7 @@ CHARACTERISATION
 CONTRACT
 NOT_APPLICABLE
 BLOCKED
+RETROSPECTIVE
 ```
 
 ### `REQUIRED`
@@ -81,6 +82,32 @@ used instead.
 Use when TDD should apply but the repository, test harness, environment or another dependency makes
 a valid RED/GREEN cycle impossible. Record the blocker and the single action required to resolve or
 escalate it. Do not silently continue as though TDD passed.
+
+### `RETROSPECTIVE`
+
+Use only when implementation already exists without contemporaneous RED evidence and a valid RED
+can no longer be recreated, for example work inherited, resumed or found incomplete at handoff.
+It is a recorded exception. It is never TDD compliance, and it is not available for new behaviour.
+
+All of the following MUST be present:
+
+1. A `P1` defect in `defects.items` ("TDD RED evidence missing") naming the affected behaviours and
+   acceptance criteria.
+2. A deterministic behavioural test for each affected behaviour, with a committed GREEN log (command and
+   exit code).
+3. For each behaviour, a committed disabled-behaviour run: in a throwaway change the production
+   behaviour is disabled or stubbed, the same test is run, it fails with `EXPECTED_BEHAVIOUR_FAILURE`,
+   and the log (command and exit code) is committed. This shows the test can detect the behaviour's
+   absence. It does not establish test-first chronology and MUST NOT be described as RED.
+4. Independent evidence verification confirming items 2 and 3 and that the packet does not claim
+   test-first chronology.
+5. An explicit, dated authorisation from the repository owner, quoted in the packet, naming the
+   WorkItem and the behaviours covered. It MUST NOT be inferred from silence, time pressure or a
+   request made by an agent.
+
+With items 1 to 5 present the packet MAY support `pr_ready: true`. Any later change to the same
+behaviour returns to `REQUIRED`. `BLOCKED` keeps its meaning and is the correct mode while any item
+is missing.
 
 ## Mandatory builder sequence
 

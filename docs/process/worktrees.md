@@ -1,4 +1,4 @@
-<!-- Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away. -->
+<!-- Managed by harkers/repo-standards at revision 0fb86f67. Use .repo-standards.yml overrides instead of editing this header away. -->
 
 # Branch and Worktree Standard
 
@@ -154,6 +154,12 @@ enough — a check that was true twenty minutes ago is not true now.
 ```bash
 FORGEJO_TOKEN=... python3 tools/merge_preflight.py --root . --check   # without the token, open PRs are NOT checked
 ```
+
+An overlapping open PR blocks the merge until someone has reviewed it. Once reviewed (the other
+work does not cover this change, and neither PR will undo the other), record it in this PR's own
+description with a line `Overlap-reviewed: #N` (several numbers may follow: `#106, #107`) and
+re-run the check. The acknowledged overlap is then reported as advisory; any other overlap still
+blocks. Do not close the other PR to get past the check.
 
 ## Cleanup
 

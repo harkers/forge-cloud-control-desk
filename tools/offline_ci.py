@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away.
+# Managed by harkers/repo-standards at revision 0fb86f67. Use .repo-standards.yml overrides instead of editing this header away.
 """Run a GitHub Actions workflow's steps locally, offline.
 
 Why this exists

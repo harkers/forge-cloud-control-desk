@@ -1,4 +1,4 @@
-<!-- Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away. -->
+<!-- Managed by harkers/repo-standards at revision 0fb86f67. Use .repo-standards.yml overrides instead of editing this header away. -->
 
 # Canonical Task State Machine
 
@@ -103,7 +103,7 @@ TASK_VALIDATED
 A task MUST NOT enter `TASK_IMPLEMENTED` merely because source files changed. Where TDD mode is
 `REQUIRED`, `CHARACTERISATION` or `CONTRACT`, valid RED and GREEN evidence is required. Where mode
 is `NOT_APPLICABLE`, the recorded reason and alternate deterministic validation are required.
-`BLOCKED` TDD evidence cannot satisfy the gate.
+`BLOCKED` TDD evidence cannot satisfy the gate. `RETROSPECTIVE` satisfies it only with the items listed in `docs/process/test-driven-development.md`, including a recorded owner authorisation; it is not TDD compliance.
 
 ## Repair loops
 

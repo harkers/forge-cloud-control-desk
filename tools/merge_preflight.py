@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away.
+# Managed by harkers/repo-standards at revision 0fb86f67. Use .repo-standards.yml overrides instead of editing this header away.
 """Check a branch before starting work on it, and again before merging it.
 
 Worktree isolation is per-task. It stops two agents sharing a *checkout*; it does
@@ -25,6 +25,12 @@ and any "yes" is a stop:
   `FORGEJO_TOKEN` (API base `FORGEJO_URL`, default https://forge.harker.systems);
   reported as unchecked when unavailable rather than assumed clean. The GitHub
   mirror is never consulted: its PRs are not the estate's.
+
+An overlap someone has already reviewed is acknowledged in the branch's own PR
+description with a line such as `Overlap-reviewed: #106` (several numbers may
+follow, e.g. `#106, #107`). That PR's overlap is then reported as advisory, not
+blocking. Before this, a long-lived open PR blocked every PR touching the same
+file, and the only way through was to close it for the length of a merge.
 """
 
 from __future__ import annotations
@@ -118,20 +124,35 @@ def _forgejo_pages(api: str, path: str, token: str) -> list[dict]:
     return items
 
 
+_REVIEWED_LINE = re.compile(r"^[ \t]*Overlap-reviewed:[ \t]*(.+)$", re.IGNORECASE | re.MULTILINE)
+
+
+def reviewed_overlaps(body: str | None) -> set[int]:
+    """PR numbers acknowledged by `Overlap-reviewed: #N[, #M ...]` lines in `body`."""
+    numbers: set[int] = set()
+    for line in _REVIEWED_LINE.findall(body or ""):
+        numbers.update(int(n) for n in re.findall(r"#(\d+)", line))
+    return numbers
+
+
 def remote_overlaps(
     root: Path, branch: str, files: set[str]
-) -> tuple[list[tuple[int, str, list[str]]], str]:
-    """Open Forgejo PRs touching any of `files`. Returns (overlaps, note)."""
+) -> tuple[list[tuple[int, str, list[str]]], str, set[int]]:
+    """Open Forgejo PRs touching any of `files`. Returns (overlaps, note, reviewed),
+    where `reviewed` holds the PR numbers this branch's own open PR acknowledges."""
     token = os.environ.get("FORGEJO_TOKEN")
     repo = _forgejo_repo(root)
     if not token or not repo:
-        return [], "FORGEJO_TOKEN or repository unknown — open PRs NOT checked"
+        return [], "FORGEJO_TOKEN or repository unknown — open PRs NOT checked", set()
     api = os.environ.get("FORGEJO_URL", "https://forge.harker.systems").rstrip("/") + "/api/v1"
 
     overlaps: list[tuple[int, str, list[str]]] = []
+    reviewed: set[int] = set()
     try:
         for pr in _forgejo_pages(api, f"/repos/{repo}/pulls?state=open", token):
             head = (pr.get("head") or {}).get("ref", "?")
+            if head == branch:
+                reviewed |= reviewed_overlaps(pr.get("body"))
             # Own PR, or one stacked on this branch: already coordinated with it.
             if branch in (head, (pr.get("base") or {}).get("ref")):
                 continue
@@ -144,8 +165,8 @@ def remote_overlaps(
             if shared:
                 overlaps.append((pr["number"], head, shared))
     except (urllib.error.URLError, OSError, ValueError, KeyError) as exc:
-        return [], f"Forgejo API unavailable ({exc}) — open PRs NOT checked"
-    return overlaps, ""
+        return [], f"Forgejo API unavailable ({exc}) — open PRs NOT checked", set()
+    return overlaps, "", reviewed
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -198,8 +219,14 @@ def main(argv: list[str] | None = None) -> int:
             f"same file(s): {shared[:5]}"
         )
 
-    remotes, note = remote_overlaps(root, branch, files)
+    remotes, note, reviewed = remote_overlaps(root, branch, files)
     for number, head, shared in remotes:
+        if number in reviewed:
+            advisories.append(
+                f"open PR #{number} ({head}) touches {len(shared)} of the same file(s): "
+                f"{shared[:5]} — acknowledged by Overlap-reviewed in this PR"
+            )
+            continue
         problems.append(
             f"open PR #{number} ({head}) touches {len(shared)} of the same file(s): "
             f"{shared[:5]}"
@@ -208,7 +235,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  {note}", file=sys.stderr)
 
     if advisories:
-        print("\nlocal branches that may overlap (advisory):")
+        print("\noverlaps that do not block (advisory):")
         for advisory in advisories:
             print(f"  - {advisory}")
 
@@ -218,7 +245,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  - {problem}")
         print(
             "\nCoordinate before merging: the other work may already cover this, or "
-            "may need rebasing first."
+            "may need rebasing first. Once reviewed, add `Overlap-reviewed: #N` to "
+            "this PR's description and re-run."
         )
         return 1 if args.check else 0
 

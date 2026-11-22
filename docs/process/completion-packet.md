@@ -1,4 +1,4 @@
-<!-- Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away. -->
+<!-- Managed by harkers/repo-standards at revision 0fb86f67. Use .repo-standards.yml overrides instead of editing this header away. -->
 
 # Completion Packet Standard
 
@@ -38,7 +38,7 @@ commands_run:
     evidence_ref: null
 
 tdd:
-  mode: REQUIRED # REQUIRED | CHARACTERISATION | CONTRACT | NOT_APPLICABLE | BLOCKED
+  mode: REQUIRED # REQUIRED | CHARACTERISATION | CONTRACT | NOT_APPLICABLE | BLOCKED | RETROSPECTIVE
   acceptance_criteria:
     - AC-001
   red:
@@ -164,6 +164,10 @@ tdd:
 For `BLOCKED`, record the blocking condition and evidence. A blocked TDD requirement cannot support
 `pr_ready: true` or `done_eligible: true`.
 
+For `RETROSPECTIVE`, record the five items required by `docs/process/test-driven-development.md`: the `P1` defect,
+GREEN logs, committed disabled-behaviour runs, independent verification and the quoted owner authorisation.
+It is a recorded exception, never TDD compliance, and may support `pr_ready: true` only with all five present.
+
 ## Defect priority semantics
 
 Defect priority is not action queue order and is not estimated fix effort. It expresses remediation urgency from impact and risk:
@@ -211,6 +215,7 @@ The forward-progress governor and dispatch tooling must use `highest_unresolved_
 - GREEN must refer to the same behavioural test/check demonstrated by RED.
 - `NOT_APPLICABLE` requires a reason and alternate deterministic validation; it is not an unverified bypass.
 - `BLOCKED` cannot be translated into successful TDD evidence.
+- `RETROSPECTIVE` is a recorded exception, not TDD evidence. It needs the `P1` defect, GREEN and disabled-behaviour logs, independent verification and a quoted, dated owner authorisation; without all of them the mode is `BLOCKED`.
 - Builder TDD does not replace the independent `TESTING` state or independent review.
 - `UNCLEAR` is valid when evidence is insufficient.
 - Every material discovered defect receives exactly one `P0`–`P3` priority and one defect state.

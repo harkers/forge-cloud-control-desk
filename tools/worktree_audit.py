@@ -1,4 +1,4 @@
-# Managed by harkers/repo-standards at revision dc639067. Use .repo-standards.yml overrides instead of editing this header away.
+# Managed by harkers/repo-standards at revision 0fb86f67. Use .repo-standards.yml overrides instead of editing this header away.
 """Worktree audit: find worktrees whose work is already landed, and prune them.
 
 `process/worktrees.md` requires every worktree to be removed once its work is
