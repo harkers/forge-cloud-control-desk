@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Managed by harkers/repo-standards at revision 0fb86f67. Use .repo-standards.yml overrides instead of editing this header away.
+# Managed by harkers/repo-standards at revision 1443c909. Use .repo-standards.yml overrides instead of editing this header away.
 """Resolve which assurance controls a repository profile requires."""
 
 from __future__ import annotations
